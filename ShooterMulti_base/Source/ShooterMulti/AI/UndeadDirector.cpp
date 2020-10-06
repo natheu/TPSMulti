@@ -48,21 +48,40 @@ void AUndeadDirector::SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team)
 	if (SpawnPoints.Num() == 0 || !temp->CanAddAI())
 		return;
 
-	pos.Y += 100; // avoid in ground spawn.
+	MultiCastSpawnEnemy(temp, pos, rot, Team);
+
+	//pos.Y += 100; // avoid in ground spawn.
+
 
 	temp->AddAI();
 
+	/*FActorSpawnParameters spawnParameters;
+	spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	auto undead = GetWorld()->SpawnActor<AUndeadCharacter>(UndeadBlueprint, pos, rot, spawnParameters);
+
+	undead->SetTeam(Team);*/
+}
+
+void AUndeadDirector::MultiCastSpawnEnemy_Implementation(ADeathMatchGS* tempDeathMatchGS, FVector pos, const FRotator& rot, ETeam Team)
+{
+	pos.Y += 100;
+
+	//tempDeathMatchGS->AddAI();
 	FActorSpawnParameters spawnParameters;
 	spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	auto undead = GetWorld()->SpawnActor<AUndeadCharacter>(UndeadBlueprint, pos, rot, spawnParameters);
 
 	undead->SetTeam(Team);
 }
+
 void AUndeadDirector::SpawnTickEnemy()
 {
-	int rand = FMath::RandRange(0, SpawnPoints.Num() - 1);
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+	{
+		int rand = FMath::RandRange(0, SpawnPoints.Num() - 1);
 
-	SpawnEnemy(SpawnPoints[rand]->GetActorLocation(), SpawnPoints[rand]->GetActorRotation());
+		SpawnEnemy(SpawnPoints[rand]->GetActorLocation(), SpawnPoints[rand]->GetActorRotation());
+	}
 }
 
 AUndeadDirector* AUndeadDirector::GetInstance()

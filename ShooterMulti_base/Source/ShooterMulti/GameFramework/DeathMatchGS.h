@@ -17,14 +17,16 @@ protected:
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|GameState")
 	ADeathMatchGM* GameMode = nullptr;
-	UPROPERTY(BlueprintReadOnly, Category = "Shooter|GameState")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Shooter|GameState")
 	int32 CurrentTime;
-	UPROPERTY(BlueprintReadOnly, Category = "Shooter|GameState")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Shooter|GameState")
 	int32 CurrentAICount = 0;
 	UPROPERTY(BlueprintReadOnly, Category = "Shooter|GameState")
 	int32 RedTeamScore = 0;
 	UPROPERTY(BlueprintReadOnly, Category = "Shooter|GameState")
 	int32 BlueTeamScore = 0;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void AdvanceTimer();
 

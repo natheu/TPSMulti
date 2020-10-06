@@ -113,8 +113,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartShoot();
-	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
+	
 	void EndShoot();
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Character|Shooter")
+	void MulticastEndShoot();
+	void MulticastEndShoot_Implementation();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartReload();

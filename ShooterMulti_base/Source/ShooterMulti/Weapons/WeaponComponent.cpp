@@ -66,19 +66,23 @@ bool UWeaponComponent::Shot()
 		MakeImpactParticles(ImpactParticle, HitResult, .66f);
 	}
 
-	//make the beam visuals
-	MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), HitResult.ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
+	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
+	{
+		//make the beam visuals
+		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), HitResult.ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
+		
+
+		//make muzzle smoke
+		UGameplayStatics::SpawnEmitterAttached(MuzzleSmokeParticle, this, FName("MuzzleFlashSocket"));
+
+		//apply shake
+		auto PlayerController = Cast<AShooterController>(Cast<AShooterCharacter>(GetOwner())->GetController());
+		if (PlayerController && ShootShake)
+			PlayerController->ClientPlayCameraShake(ShootShake);
+	}
 
 	//play the shot sound
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotSound, WeaponData.MuzzleTransform.GetLocation());
-
-	//make muzzle smoke
-	UGameplayStatics::SpawnEmitterAttached(MuzzleSmokeParticle, this, FName("MuzzleFlashSocket"));
-
-	//apply shake
-	auto PlayerController = Cast<AShooterController>(Cast<AShooterCharacter>(GetOwner())->GetController());
-	if (PlayerController && ShootShake)
-		PlayerController->ClientPlayCameraShake(ShootShake);
 
 	//add spread
 	CurrentSpread = FMath::Min(WeaponMaxSpread, CurrentSpread + WeaponSpreadPerShot);
@@ -113,6 +117,8 @@ void UWeaponComponent::GetAmmo(int Count)
 
 bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData)
 {
+	/*if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
+		return false;*/
 	FVector LookLocation = WeaponData.LookTransform.GetLocation();
 	FVector LookDirection = WeaponData.LookTransform.GetRotation().GetForwardVector();
 
@@ -132,26 +138,29 @@ bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const F
 												LookLocation + LookDirection * WeaponData.MaxDistance,
 												ECC_Visibility , CollisionParams))
 	{
-		//make damages
-		FPointDamageEvent DamageEvent = FPointDamageEvent(WeaponData.Damages, HitResult, LookDirection, UDamageType::StaticClass());
-		HitResult.Actor->TakeDamage(WeaponData.Damages, DamageEvent, nullptr, Causer);
+		if (GetOwner()->GetLocalRole() == ENetRole::ROLE_Authority)
+		{
+			//make damages
+			FPointDamageEvent DamageEvent = FPointDamageEvent(WeaponData.Damages, HitResult, LookDirection, UDamageType::StaticClass());
+			HitResult.Actor->TakeDamage(WeaponData.Damages, DamageEvent, nullptr, Causer);
 
-		//push hit actors (physics)
-		TArray<UActorComponent*> SkeletalMeshComponents;
-		HitResult.Actor->GetComponents(USkeletalMeshComponent::StaticClass(), SkeletalMeshComponents);
-		for (auto ActorComponent : SkeletalMeshComponents)
-		{
-			USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(ActorComponent);
-			if (SkeletalMeshComponent->IsSimulatingPhysics())
-				SkeletalMeshComponent->AddForceAtLocation(LookDirection * WeaponData.Knockback, HitResult.ImpactPoint, HitResult.BoneName);
-		}
-		TArray<UActorComponent*> StaticMeshComponents;
-		HitResult.Actor->GetComponents(UStaticMeshComponent::StaticClass(), StaticMeshComponents);
-		for (auto ActorComponent : StaticMeshComponents)
-		{
-			UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(ActorComponent);
-			if (StaticMeshComponent->IsSimulatingPhysics())
-				StaticMeshComponent->AddForceAtLocation(LookDirection * WeaponData.Knockback, HitResult.ImpactPoint, HitResult.BoneName);
+			//push hit actors (physics)
+			TArray<UActorComponent*> SkeletalMeshComponents;
+			HitResult.Actor->GetComponents(USkeletalMeshComponent::StaticClass(), SkeletalMeshComponents);
+			for (auto ActorComponent : SkeletalMeshComponents)
+			{
+				USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(ActorComponent);
+				if (SkeletalMeshComponent->IsSimulatingPhysics())
+					SkeletalMeshComponent->AddForceAtLocation(LookDirection * WeaponData.Knockback, HitResult.ImpactPoint, HitResult.BoneName);
+			}
+			TArray<UActorComponent*> StaticMeshComponents;
+			HitResult.Actor->GetComponents(UStaticMeshComponent::StaticClass(), StaticMeshComponents);
+			for (auto ActorComponent : StaticMeshComponents)
+			{
+				UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(ActorComponent);
+				if (StaticMeshComponent->IsSimulatingPhysics())
+					StaticMeshComponent->AddForceAtLocation(LookDirection * WeaponData.Knockback, HitResult.ImpactPoint, HitResult.BoneName);
+			}
 		}
 
 		return Cast<ACharacter>(HitResult.Actor) == nullptr; // if collision with non character.

@@ -29,6 +29,6 @@ void UUndeadCharacterAnim::PlayPunchMontage()
 
 void UUndeadCharacterAnim::AnimNotify_PunchHit(UAnimNotify* Notify) const
 {
-	if (UndeadCharacter)
+	if (UndeadCharacter && GetOwningActor()->GetLocalRole() == ENetRole::ROLE_Authority)
 		UndeadCharacter->InflictPunch();
 }

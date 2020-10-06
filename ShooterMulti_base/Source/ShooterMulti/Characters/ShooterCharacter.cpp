@@ -96,7 +96,8 @@ void AShooterCharacter::BeginPlay()
 	
 	RunSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
-	Invincibility(Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->InvincibilityTime);
+	if(GetLocalRole() == ENetRole::ROLE_Authority)
+		Invincibility(Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->InvincibilityTime);
 }
 
 void AShooterCharacter::Tick(float DeltaTime)
@@ -213,6 +214,12 @@ void AShooterCharacter::EndShoot()
 {
 	bIsShooting = false;
 }
+
+void AShooterCharacter::MulticastEndShoot_Implementation()
+{
+	EndShoot();
+}
+
 
 void AShooterCharacter::StartReload()
 {

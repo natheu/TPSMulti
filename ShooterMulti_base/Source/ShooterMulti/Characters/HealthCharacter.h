@@ -76,6 +76,14 @@ public:
 								 class AController*		EventInstigator,
 								 AActor*				DamageCauser) override;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastUpdateTakeDamage(const FVector_NetQuantize& PointDamageEvent, USoundBase* CrtHitSound, float TotalDamage);
+	void MulticastUpdateTakeDamage_Implementation(const FVector_NetQuantize& PointDamageEvent, USoundBase* CrtHitSound, float TotalDamage);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastUpdateDeath();
+	void MulticastUpdateDeath_Implementation();
+
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	float GainHealth(float Amount);
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")

@@ -112,18 +112,33 @@ float AHealthCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Dama
 		else
 			TotalDamage = DamageAmount;
 
-		Health = FMath::Max(0.f, Health - TotalDamage);
+		/*Health = FMath::Max(0.f, Health - TotalDamage);
 		if (CrtHitSound)
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, PointDamageEvent->HitInfo.Location);
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, PointDamageEvent->HitInfo.Location);*/
+		if (GetLocalRole() == ENetRole::ROLE_Authority)
+			MulticastUpdateTakeDamage(PointDamageEvent->HitInfo.Location, CrtHitSound, TotalDamage);
 	}
 	
 	if (IsDead())
 	{
-		ActivateRagdoll();
-		StartDisapear();
+		if (GetLocalRole() == ENetRole::ROLE_Authority)
+			MulticastUpdateDeath();
 	}
 
 	return TotalDamage;
+}
+
+void AHealthCharacter::MulticastUpdateTakeDamage_Implementation(const FVector_NetQuantize& Location, USoundBase* CrtHitSound, float TotalDamage)
+{
+	Health = FMath::Max(0.f, Health - TotalDamage);
+	if (CrtHitSound)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, Location);
+}
+
+void AHealthCharacter::MulticastUpdateDeath_Implementation()
+{
+	ActivateRagdoll();
+	StartDisapear();
 }
 
 float AHealthCharacter::GainHealth(float GainAmount)
@@ -141,6 +156,8 @@ void AHealthCharacter::ResetHealth()
 
 void AHealthCharacter::InflictPunch()
 {
+	if (GetLocalRole() != ENetRole::ROLE_Authority)
+		return;
 	TArray<struct FHitResult> OutHits;
 	
 	FVector StartPos = GetActorLocation();
@@ -250,6 +267,8 @@ void AHealthCharacter::StartDisapear()
 
 void AHealthCharacter::UpdateDisapear()
 {
+	if (GetLocalRole() != ENetRole::ROLE_Authority)
+		return;
 	if (!bIsDisapearing || DisapearTimer < DisapearingDelay)
 		return;
 

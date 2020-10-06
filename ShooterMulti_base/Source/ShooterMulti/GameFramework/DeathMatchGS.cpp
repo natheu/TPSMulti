@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Net/UnrealNetwork.h"
 
 void ADeathMatchGS::BeginPlay()
 {
@@ -17,13 +18,23 @@ void ADeathMatchGS::BeginPlay()
 
 	OnGameRestart.AddLambda([this]() { Reset(); });
 
-	GameMode = Cast<ADeathMatchGM>(AuthorityGameMode);
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+	{
+		GameMode = Cast<ADeathMatchGM>(AuthorityGameMode);
 
-	check(GameMode && "GameMode nullptr: Cast as ADeathMatchGM failed.");
+		check(GameMode && "GameMode nullptr: Cast as ADeathMatchGM failed.");
 
-	CurrentTime = GameMode->GameTime;
-	GetWorldTimerManager().SetTimer(CountdownTimerHandle, this, &ADeathMatchGS::AdvanceTimer, 1.0f, true);
+		CurrentTime = GameMode->GameTime;
+		GetWorldTimerManager().SetTimer(CountdownTimerHandle, this, &ADeathMatchGS::AdvanceTimer, 1.0f, true);
+	}
 
+}
+
+void ADeathMatchGS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ADeathMatchGS, CurrentTime);
+	DOREPLIFETIME(ADeathMatchGS, CurrentAICount);
 }
 
 void ADeathMatchGS::AdvanceTimer()
@@ -66,9 +77,10 @@ void ADeathMatchGS::RemovePlayerState(APlayerState* PlayerState)
 
 bool ADeathMatchGS::CanAddAI()
 {
-	return Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->MaxAIPerPlayer* PlayerArray.Num() > CurrentAICount;
-
-	return false;
+	if(GetLocalRole() == ENetRole::ROLE_Authority)
+		return Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->MaxAIPerPlayer* PlayerArray.Num() > CurrentAICount;
+	else
+		return false;
 }
 
 void ADeathMatchGS::AddAI()

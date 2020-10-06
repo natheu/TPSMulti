@@ -51,13 +51,13 @@ void UShooterCharacterAnim::PlayHitMontage()
 
 void UShooterCharacterAnim::AnimNotify_PunchHit(UAnimNotify* Notify) const
 {
-	if (ShooterCharacter)
+	if (ShooterCharacter && GetOwningActor()->GetLocalRole() == ENetRole::ROLE_Authority)
 		ShooterCharacter->InflictPunch();
 }
 
 void UShooterCharacterAnim::AnimNotify_PushButton(UAnimNotify* Notify) const
 {
-	if (ShooterCharacter)
+	if (ShooterCharacter && GetOwningActor()->GetLocalRole() == ENetRole::ROLE_Authority)
 		ShooterCharacter->InflictPushButton();
 }
 

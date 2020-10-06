@@ -35,8 +35,8 @@ void APickup::NotifyActorBeginOverlap(AActor * OtherActor)
 
 	//play the shot sound
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PickupSound, GetActorLocation());
-
-	APickupDirector::FreePickup(SpawnKey);
+	if(GetLocalRole() == ENetRole::ROLE_Authority)
+		APickupDirector::FreePickup(SpawnKey);
 	
 	Destroy();
 }
