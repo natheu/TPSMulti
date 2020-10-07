@@ -114,8 +114,15 @@ public:
 
 	UFUNCTION()
 	void StartSprint();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStartSprint();
+	void MulticastStartSprint_Implementation();
+
 	UFUNCTION()
 	void EndSprint();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEndSprint();
+	void MulticastEndSprint_Implementation();
 
 	UFUNCTION()
 	void StartJump();
@@ -140,8 +147,9 @@ public:
 	void MulticastStartShoot();
 	void MulticastStartShoot_Implementation();
 	
+	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void EndShoot();
-	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Character|Shooter")
+	UFUNCTION(NetMulticast, Reliable)
 	void MulticastEndShoot();
 	void MulticastEndShoot_Implementation();
 
@@ -154,9 +162,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void PushButton();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPushButton();
+	void MulticastPushButton_Implementation();
+
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void InflictPushButton();
-
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastInflictPushButton(TArray<AActor*> OverlappingActors);
+	void MulticastInflictPushButton_Implementation(TArray<AActor*> OverlappingActors);
+	                     
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void Punch();
 

@@ -76,20 +76,32 @@ void AShooterController::Turn(float Value)
 
 void AShooterController::StartSprint()
 {
+	/*if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->StartSprint();*/
+	ServerStartSprint();
+
+}
+
+void AShooterController::ServerStartSprint_Implementation()
+{
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->StartSprint();
+		ShooterCharacter->MulticastStartSprint();
 }
 
 void AShooterController::EndSprint()
 {
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->EndSprint();
+	ServerEndSprint();
+	/*if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->EndSprint();*/
 }
 
+void AShooterController::ServerEndSprint_Implementation()
+{
+	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->MulticastEndSprint();
+}
 void AShooterController::StartJump()
 {
-	/*if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->StartJump();*/
 	ServerStartJump();
 }
 
@@ -111,12 +123,6 @@ void AShooterController::EndJump()
 		if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
 			ShooterCharacter->MulticastEndJump();
 }
-
-/*void AShooterController::MulticastEndJump_Implementation()
-{
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->EndJump();
-}*/
 
 
 void AShooterController::StartAim()
@@ -179,8 +185,13 @@ void AShooterController::EndReload()
 
 void AShooterController::PushButton()
 {
+	ServerPushButton();
+}
+
+void AShooterController::ServerPushButton_Implementation()
+{
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->PushButton();
+		ShooterCharacter->MulticastPushButton();
 }
 
 void AShooterController::Punch()

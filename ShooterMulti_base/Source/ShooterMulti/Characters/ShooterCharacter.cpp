@@ -141,6 +141,11 @@ void AShooterCharacter::StartSprint()
 	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 }
 
+void AShooterCharacter::MulticastStartSprint_Implementation()
+{
+	StartSprint();
+}
+
 void AShooterCharacter::EndSprint()
 {
 	if (State != EShooterCharacterState::Sprint && State != EShooterCharacterState::Jump)
@@ -152,6 +157,11 @@ void AShooterCharacter::EndSprint()
 		SetState(EShooterCharacterState::IdleRun);
 
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+}
+
+void AShooterCharacter::MulticastEndSprint_Implementation()
+{
+	EndSprint();
 }
 
 void AShooterCharacter::StartJump()
@@ -351,18 +361,30 @@ void AShooterCharacter::PushButton()
 	PlayPushButtonAnim();
 }
 
+void AShooterCharacter::MulticastPushButton_Implementation()
+{
+	PushButton();
+}
+
 void AShooterCharacter::InflictPushButton()
 {
+	if (GetLocalRole() != ENetRole::ROLE_Authority)
+		return;
+
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, TSubclassOf<AEnemySpawnerButton>());
 
 	if (OverlappingActors.Num() > 0)
-	{
-		AEnemySpawnerButton* Button = Cast<AEnemySpawnerButton>(OverlappingActors[0]);
-		
-		if (Button)
-			Button->Activate(Team);
-	}
+		MulticastInflictPushButton(OverlappingActors);
+}
+
+void AShooterCharacter::MulticastInflictPushButton_Implementation(TArray<AActor*> OverlappingActors)
+{
+	//if (GetLocalRole() != ENetRole::ROLE_Authority)
+	AEnemySpawnerButton* Button = Cast<AEnemySpawnerButton>(OverlappingActors[0]);
+
+	if (Button)
+		Button->Activate(Team);
 }
 
 void AShooterCharacter::PlayPushButtonAnim()

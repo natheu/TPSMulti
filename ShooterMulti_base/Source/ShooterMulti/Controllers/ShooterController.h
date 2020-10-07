@@ -22,8 +22,17 @@ protected:
 	void Turn(float Value);
 
 	void StartSprint();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerStartSprint();
+	void ServerStartSprint_Implementation();
+	bool ServerStartSprint_Validate() { return true; }
 
 	void EndSprint();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerEndSprint();
+	void ServerEndSprint_Implementation();
+	bool ServerEndSprint_Validate() { return true; }
+
 	void StartJump();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStartJump();
@@ -55,14 +64,12 @@ protected:
 	void MulticastEndShoot_Implementation();
 
 	void StartReload();
+
 	void PushButton();
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerEndShoot();
-	void ServerEndShoot_Implementation();
-	bool ServerEndShoot_Validate() { return true; }
-	UFUNCTION(NetMulticast, Reliable)
-		void MulticastEndShoot();
-	void MulticastEndShoot_Implementation();
+	void ServerPushButton();
+	void ServerPushButton_Implementation();
+	bool ServerPushButton_Validate() { return true; }
 	void Punch();
 	
 
@@ -71,11 +78,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Shooter|PlayerController")
 	void EndJump();
-	/*UFUNCTION(NetMulticast, Reliable)
-	void MulticastEndJump();
-	void MulticastEndJump_Implementation();*/
-
 
 	UFUNCTION(BlueprintCallable, Category = "Shooter|PlayerController")
-		void EndReload();
+	void EndReload();
 };
