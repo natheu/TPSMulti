@@ -24,6 +24,22 @@ class SHOOTERMULTI_API AShooterCharacter : public AHealthCharacter
 {
 	GENERATED_BODY()
 
+private:
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEndReload();
+	void MulticastEndReload_Implementation();
+
+	void UpdateVariableStartReaload();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStartReload();
+	void MulticastStartReload_Implementation();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastAbortReload();
+	void MulticastAbortReload_Implementation();
+
+
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Character|Shooter")
@@ -103,8 +119,15 @@ public:
 
 	UFUNCTION()
 	void StartJump();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStartJump();
+	void MulticastStartJump_Implementation();
 	UFUNCTION()
+
 	void EndJump();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEndJump();
+	void MulticastEndJump_Implementation();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartAim();
@@ -113,6 +136,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartShoot();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStartShoot();
+	void MulticastStartShoot_Implementation();
 	
 	void EndShoot();
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Character|Shooter")

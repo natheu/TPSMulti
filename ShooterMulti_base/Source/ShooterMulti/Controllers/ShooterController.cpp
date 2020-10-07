@@ -95,7 +95,8 @@ void AShooterController::StartJump()
 
 void AShooterController::ServerStartJump_Implementation()
 {
-	MulticastStartJump();
+	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->MulticastStartJump();
 }
 
 void AShooterController::MulticastStartJump_Implementation()
@@ -107,14 +108,15 @@ void AShooterController::MulticastStartJump_Implementation()
 void AShooterController::EndJump()
 {
 	if (GetPawn()->GetLocalRole() == ENetRole::ROLE_Authority)
-		MulticastEndJump();
+		if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+			ShooterCharacter->MulticastEndJump();
 }
 
-void AShooterController::MulticastEndJump_Implementation()
+/*void AShooterController::MulticastEndJump_Implementation()
 {
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
 		ShooterCharacter->EndJump();
-}
+}*/
 
 
 void AShooterController::StartAim()
@@ -136,8 +138,8 @@ void AShooterController::StartShoot()
 
 void AShooterController::ServerStartShoot_Implementation()
 {
-	//if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-	MulticastStartShoot();
+	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->MulticastStartShoot();
 }
 
 void AShooterController::MulticastStartShoot_Implementation()
@@ -148,13 +150,13 @@ void AShooterController::MulticastStartShoot_Implementation()
 
 void AShooterController::EndShoot()
 {
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->MulticastEndShoot();
+	ServerEndShoot();
 }
 
 void AShooterController::ServerEndShoot_Implementation()
 {
-	MulticastEndShoot();
+	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->MulticastEndShoot();
 }
 
 void AShooterController::MulticastEndShoot_Implementation()

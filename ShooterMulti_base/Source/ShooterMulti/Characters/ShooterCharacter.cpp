@@ -171,6 +171,11 @@ void AShooterCharacter::StartJump()
 	}
 }
 
+void AShooterCharacter::MulticastStartJump_Implementation()
+{
+	StartJump();
+}
+
 void AShooterCharacter::EndJump()
 {
 	if (State != EShooterCharacterState::Jump && State != EShooterCharacterState::Falling)
@@ -178,6 +183,11 @@ void AShooterCharacter::EndJump()
 
 	SetState(PrevState);
 	StopJumping();
+}
+
+void AShooterCharacter::MulticastEndJump_Implementation()
+{
+	EndJump();
 }
 
 void AShooterCharacter::StartAim()
@@ -210,6 +220,11 @@ void AShooterCharacter::StartShoot()
 		bIsShooting = true;
 }
 
+void AShooterCharacter::MulticastStartShoot_Implementation()
+{
+	StartShoot();
+}
+
 void AShooterCharacter::EndShoot()
 {
 	bIsShooting = false;
@@ -220,23 +235,36 @@ void AShooterCharacter::MulticastEndShoot_Implementation()
 	EndShoot();
 }
 
-
 void AShooterCharacter::StartReload()
 {
 	if (Weapon && Weapon->AmmoCount > 0 && Weapon->WeaponMagazineSize > Weapon->LoadedAmmo)
 	{
-		if (State == EShooterCharacterState::Aim)
-			EndAim();
-		else if (bIsShooting)
-			bIsShooting = false;
-
-		if (State != EShooterCharacterState::IdleRun)
-			return;
-
-		SetState(EShooterCharacterState::Reload);
+		if (GetLocalRole() == ENetRole::ROLE_Authority)
+			MulticastStartReload();
+		/*else
+			UpdateVariableStartReaload();*/
 		
-		GetCharacterMovement()->MaxWalkSpeed = ReloadWalkSpeed;
 	}
+}
+
+void AShooterCharacter::UpdateVariableStartReaload()
+{
+	if (State == EShooterCharacterState::Aim)
+		EndAim();
+	else if (bIsShooting)
+		bIsShooting = false;
+
+	if (State != EShooterCharacterState::IdleRun)
+		return;
+
+	SetState(EShooterCharacterState::Reload);
+
+	GetCharacterMovement()->MaxWalkSpeed = ReloadWalkSpeed;
+}
+
+void AShooterCharacter::MulticastStartReload_Implementation()
+{
+	UpdateVariableStartReaload();
 }
 
 void AShooterCharacter::EndReload()
@@ -244,18 +272,48 @@ void AShooterCharacter::EndReload()
 	if (State != EShooterCharacterState::Reload)
 		return;
 
+	
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+		MulticastEndReload();
+	/*else
+	{
+		SetState(EShooterCharacterState::IdleRun);
+		
+		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+
+		if (Weapon)
+			Weapon->Reload();
+	}*/
+}
+
+void AShooterCharacter::MulticastEndReload_Implementation()
+{
 	SetState(EShooterCharacterState::IdleRun);
 	
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 
-	if(Weapon)
+	if (Weapon)
 		Weapon->Reload();
 }
+
 void AShooterCharacter::AbortReload()
 {
 	if (State != EShooterCharacterState::Reload)
 		return;
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+	{
+		MulticastAbortReload();
+	}
+	/*else
+	{
+		SetState(EShooterCharacterState::IdleRun);
 
+		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+	}*/
+}
+
+void AShooterCharacter::MulticastAbortReload_Implementation()
+{
 	SetState(EShooterCharacterState::IdleRun);
 
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
