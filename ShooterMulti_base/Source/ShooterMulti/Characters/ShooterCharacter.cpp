@@ -371,20 +371,32 @@ void AShooterCharacter::InflictPushButton()
 	if (GetLocalRole() != ENetRole::ROLE_Authority)
 		return;
 
+	/*TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, TSubclassOf<AEnemySpawnerButton>());*/
+
+	/*if (OverlappingActors.Num() > 0)
+	{
+		AEnemySpawnerButton* Button = Cast<AEnemySpawnerButton>(OverlappingActors[0]);
+
+		if (Button)
+			Button->Activate(Team);
+	}*/
+	MulticastInflictPushButton();
+}
+
+void AShooterCharacter::MulticastInflictPushButton_Implementation()
+{
+	//if (GetLocalRole() != ENetRole::ROLE_Authority)
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, TSubclassOf<AEnemySpawnerButton>());
 
 	if (OverlappingActors.Num() > 0)
-		MulticastInflictPushButton(OverlappingActors);
-}
+	{
+		AEnemySpawnerButton* Button = Cast<AEnemySpawnerButton>(OverlappingActors[0]);
 
-void AShooterCharacter::MulticastInflictPushButton_Implementation(TArray<AActor*> OverlappingActors)
-{
-	//if (GetLocalRole() != ENetRole::ROLE_Authority)
-	AEnemySpawnerButton* Button = Cast<AEnemySpawnerButton>(OverlappingActors[0]);
-
-	if (Button)
-		Button->Activate(Team);
+		if (Button)
+			Button->Activate(Team);
+	}
 }
 
 void AShooterCharacter::PlayPushButtonAnim()

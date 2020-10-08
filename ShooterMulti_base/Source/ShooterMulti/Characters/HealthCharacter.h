@@ -86,6 +86,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	float GainHealth(float Amount);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastGainHealth(float GainAmount);
+	void MulticastGainHealth_Implementation(float GainAmount);
+
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	void ResetHealth();
 

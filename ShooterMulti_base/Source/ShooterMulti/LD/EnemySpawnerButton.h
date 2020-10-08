@@ -11,6 +11,12 @@ class SHOOTERMULTI_API AEnemySpawnerButton : public AActor, public IResetable
 {
 	GENERATED_BODY()
 	
+private:
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastUpdateTeam(ETeam team, FLinearColor color);
+	void MulticastUpdateTeam_Implementation(ETeam team, FLinearColor color);
+
+
 protected:
 
 	ETeam mTeam = ETeam::None;

@@ -30,6 +30,10 @@ private:
 	friend class APickupDirector;
 	FSpawnKey SpawnKey;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastUpdatePickUpDirector();
+	void MulticastUpdatePickUpDirector_Implementation();
+
 protected:
 
 	APickup();

@@ -9,8 +9,8 @@ void AHealthPickup::NotifyActorBeginOverlap(AActor * OtherActor)
 
 	if (!Player || Player->GetHealth() >= Player->GetMaxHealth())
 		return;
-
-	Player->GainHealth(Health);
+	if(GetLocalRole() == ENetRole::ROLE_Authority)
+		Player->GainHealth(Health);
 
 	// After because of Destroy
 	Super::NotifyActorBeginOverlap(OtherActor);

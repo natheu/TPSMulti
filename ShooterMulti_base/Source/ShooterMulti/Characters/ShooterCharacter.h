@@ -35,8 +35,11 @@ private:
 	void MulticastStartReload();
 	void MulticastStartReload_Implementation();
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastAbortReload();
+		void MulticastAbortReload();
 	void MulticastAbortReload_Implementation();
+	/*UFUNCTION(NetMulticast, Reliable)
+	void MulticastAbortReload();
+	void MulticastAbortReload_Implementation();*/
 
 
 
@@ -169,9 +172,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void InflictPushButton();
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastInflictPushButton(TArray<AActor*> OverlappingActors);
-	void MulticastInflictPushButton_Implementation(TArray<AActor*> OverlappingActors);
-	                     
+	void MulticastInflictPushButton();
+	void MulticastInflictPushButton_Implementation();
+	
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void Punch();
 

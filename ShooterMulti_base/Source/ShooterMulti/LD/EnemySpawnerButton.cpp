@@ -32,7 +32,8 @@ void AEnemySpawnerButton::Activate(ETeam team)
 	auto lambda = [this]()
 	{
 		auto dir = AUndeadDirector::GetInstance();
-		dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam);
+		if(GetLocalRole() == ENetRole::ROLE_Authority)
+			dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam);
 	};
 
 	GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, lambda, SecondPerSpawn, true);
@@ -44,10 +45,21 @@ void AEnemySpawnerButton::SetTeam(ETeam team)
 {
 	mTeam = team;
 
-	if (!material)
+	if (!material /*&& GetLocalRole() != ENetRole::ROLE_Authority*/)
 		return;
 
-	FLinearColor color = mTeam == ETeam::Blue ? FLinearColor::Blue : mTeam == ETeam::Red ? FLinearColor::Red : FLinearColor::Green;
+	FLinearColor color = team == ETeam::Blue ? FLinearColor::Blue : team == ETeam::Red ? FLinearColor::Red : FLinearColor::Green;
+
+	material->SetVectorParameterValue("ColorActive", color);
+	//MulticastUpdateTeam(team, color);
+}
+
+void AEnemySpawnerButton::MulticastUpdateTeam_Implementation(ETeam team, FLinearColor color)
+{
+	mTeam = team;
+
+	if (!material)
+		return;
 
 	material->SetVectorParameterValue("ColorActive", color);
 }

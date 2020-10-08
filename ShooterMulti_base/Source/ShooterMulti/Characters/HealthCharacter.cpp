@@ -143,10 +143,15 @@ void AHealthCharacter::MulticastUpdateDeath_Implementation()
 
 float AHealthCharacter::GainHealth(float GainAmount)
 {
-	if(!IsDead() && GainAmount > 0.0f)
-		Health = FMath::Min(Health + GainAmount, MaxHealth);
+	if (!IsDead() && GainAmount > 0.0f && GetLocalRole() == ENetRole::ROLE_Authority)
+		MulticastGainHealth(GainAmount);
 
 	return Health;
+}
+
+void AHealthCharacter::MulticastGainHealth_Implementation(float GainAmount)
+{
+	Health = FMath::Min(Health + GainAmount, MaxHealth);
 }
 
 void AHealthCharacter::ResetHealth()
