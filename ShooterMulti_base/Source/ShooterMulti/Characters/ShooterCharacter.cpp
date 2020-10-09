@@ -383,7 +383,7 @@ void AShooterCharacter::InflictPushButton()
 	if (GetLocalRole() != ENetRole::ROLE_Authority)
 		return;
 
-	/*TArray<AActor*> OverlappingActors;
+	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, TSubclassOf<AEnemySpawnerButton>());
 
 	if (OverlappingActors.Num() > 0)
@@ -392,8 +392,8 @@ void AShooterCharacter::InflictPushButton()
 
 		if (Button)
 			Button->Activate(Team);
-	}*/
-	MulticastInflictPushButton();
+	}
+	//MulticastInflictPushButton();
 }
 
 void AShooterCharacter::MulticastInflictPushButton_Implementation()
