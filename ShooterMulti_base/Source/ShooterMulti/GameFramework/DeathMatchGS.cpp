@@ -77,7 +77,7 @@ void ADeathMatchGS::RemovePlayerState(APlayerState* PlayerState)
 
 bool ADeathMatchGS::CanAddAI()
 {
-	if(GetLocalRole() == ENetRole::ROLE_Authority)
+	if(GetLocalRole() == ENetRole::ROLE_Authority || GetLocalRole() == ENetRole::ROLE_SimulatedProxy)
 		return Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->MaxAIPerPlayer* PlayerArray.Num() > CurrentAICount;
 	else
 		return false;

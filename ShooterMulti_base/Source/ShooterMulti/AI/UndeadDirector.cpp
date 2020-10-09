@@ -9,6 +9,7 @@ AUndeadDirector* AUndeadDirector::Instance = nullptr;
 AUndeadDirector::AUndeadDirector()
 {
 	bAlwaysRelevant = true;
+	bReplicates = false;
 }
 
 // Called when the game starts or when spawned

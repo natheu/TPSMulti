@@ -8,6 +8,7 @@
 APickup::APickup()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 }
 
 void APickup::MulticastUpdatePickUpDirector_Implementation()
@@ -41,9 +42,12 @@ void APickup::NotifyActorBeginOverlap(AActor * OtherActor)
 	//play the shot sound
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PickupSound, GetActorLocation());
 	if (GetLocalRole() == ENetRole::ROLE_Authority)
-		MulticastUpdatePickUpDirector();
-	
-	Destroy();
+	{
+		//MulticastUpdatePickUpDirector();
+		APickupDirector::FreePickup(SpawnKey);
+		Destroy();
+	}
+
 }
 
 void APickup::Reset()

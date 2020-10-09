@@ -115,12 +115,14 @@ void AShooterCharacter::BeginPlay()
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+	{
+		if (IsDead())
+			return;
 
-	if (IsDead())
-		return;
-
-	if (bIsShooting && !Weapon->Shot())
-		StartReload();
+		if (bIsShooting && !Weapon->Shot())
+			StartReload();
+	}
 
 	// Anim aim offsets
 	FRotator LookRotation = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation());
@@ -224,6 +226,11 @@ void AShooterCharacter::StartAim()
 	Camera->SwitchToAimCamera();
 }
 
+void AShooterCharacter::MulticastStartAim_Implementation()
+{
+	StartAim();
+}
+
 void AShooterCharacter::EndAim()
 {
 	if (State != EShooterCharacterState::Aim)
@@ -234,6 +241,11 @@ void AShooterCharacter::EndAim()
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 	
 	Camera->SwitchToWalkCamera();
+}
+
+void AShooterCharacter::MulticastEndAim_Implementation()
+{
+	EndAim();
 }
 
 void AShooterCharacter::StartShoot()

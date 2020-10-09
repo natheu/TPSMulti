@@ -88,12 +88,16 @@ protected:
 								const FVector& Source = FVector::ZeroVector,
 								const FVector& Target = FVector::ZeroVector);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
 	int MaxAmmo = 50;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
+	UFUNCTION()
+	void OnRep_CheckAmmo();
+	UPROPERTY(ReplicatedUsing = OnRep_CheckAmmo, BlueprintReadOnly, EditAnywhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
 	int AmmoCount = 50;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Character|Shooter|Weapon")
@@ -146,6 +150,13 @@ public:
 	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	bool Shot();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFxSoundShoot(FHitResult HitResult, FLaserWeaponData WeaponData);
+	void MulticastFxSoundShoot_Implementation(FHitResult HitResult, FLaserWeaponData WeaponData);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFxSoundSuccessShoot(FHitResult HitResult);
+	void MulticastFxSoundSuccessShoot_Implementation(FHitResult HitResult);
 
 	void Reload();
 

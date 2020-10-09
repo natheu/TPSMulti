@@ -147,8 +147,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartAim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStartAim();
+	void MulticastStartAim_Implementation();
+
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void EndAim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEndAim();
+	void MulticastEndAim_Implementation();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartShoot();

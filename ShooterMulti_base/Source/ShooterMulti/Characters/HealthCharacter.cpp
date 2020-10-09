@@ -7,6 +7,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine.h"
+#include "Net/UnrealNetwork.h"
 
 AHealthCharacter::AHealthCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -27,7 +28,9 @@ AHealthCharacter::AHealthCharacter(const FObjectInitializer& ObjectInitializer) 
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 }
+
 
 void AHealthCharacter::BeginPlay()
 {
@@ -53,6 +56,21 @@ void AHealthCharacter::Tick(float DeltaTime)
 
 	UpdateDisapear();
 }
+
+void AHealthCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AHealthCharacter, Health);
+}
+
+void AHealthCharacter::OnRep_CheckHealth()
+{
+	if (Health > MaxHealth)
+		Health = MaxHealth;
+	else if (Health < 0)
+		Health = 0;
+}
+
 
 bool AHealthCharacter::IsDead()
 {
@@ -116,7 +134,10 @@ float AHealthCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Dama
 		if (CrtHitSound)
 			UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, PointDamageEvent->HitInfo.Location);*/
 		if (GetLocalRole() == ENetRole::ROLE_Authority)
+		{
+			Health = FMath::Max(0.f, Health - TotalDamage);
 			MulticastUpdateTakeDamage(PointDamageEvent->HitInfo.Location, CrtHitSound, TotalDamage);
+		}
 	}
 	
 	if (IsDead())
@@ -130,7 +151,6 @@ float AHealthCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Dama
 
 void AHealthCharacter::MulticastUpdateTakeDamage_Implementation(const FVector_NetQuantize& Location, USoundBase* CrtHitSound, float TotalDamage)
 {
-	Health = FMath::Max(0.f, Health - TotalDamage);
 	if (CrtHitSound)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, Location);
 }
@@ -144,7 +164,7 @@ void AHealthCharacter::MulticastUpdateDeath_Implementation()
 float AHealthCharacter::GainHealth(float GainAmount)
 {
 	if (!IsDead() && GainAmount > 0.0f && GetLocalRole() == ENetRole::ROLE_Authority)
-		MulticastGainHealth(GainAmount);
+		Health = FMath::Min(Health + GainAmount, MaxHealth);
 
 	return Health;
 }

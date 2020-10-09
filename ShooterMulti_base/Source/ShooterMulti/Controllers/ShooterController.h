@@ -43,7 +43,16 @@ protected:
 	void MulticastStartJump_Implementation();
 
 	void StartAim();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerStartAim();
+	void ServerStartAim_Implementation();
+	bool ServerStartAim_Validate() { return true; }
+
 	void EndAim();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerEndAim();
+	void ServerEndAim_Implementation();
+	bool ServerEndAim_Validate() { return true; }
 
 	void StartShoot();
 	UFUNCTION(Server, Reliable, WithValidation)

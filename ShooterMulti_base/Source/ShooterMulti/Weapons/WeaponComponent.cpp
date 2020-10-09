@@ -6,6 +6,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/DecalComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Net/UnrealNetwork.h"
+
 
 void UWeaponComponent::BeginPlay()
 {
@@ -37,6 +39,21 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	CurrentSpread = FMath::Max(MinSpread, CurrentSpread - WeaponSpreadRecoveryRate * DeltaTime);
 }
 
+
+void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UWeaponComponent, AmmoCount);
+}
+
+void UWeaponComponent::OnRep_CheckAmmo()
+{
+	if (AmmoCount > MaxAmmo)
+		AmmoCount = MaxAmmo;
+	else if (AmmoCount < 0)
+		AmmoCount = 0;
+}
+
 bool UWeaponComponent::Shot()
 {
 	if (ShootTimer < FireRate)
@@ -59,13 +76,18 @@ bool UWeaponComponent::Shot()
 	FHitResult HitResult;
 	if (ShootLaser(GetOwner(), HitResult, WeaponData))
 	{
+		MulticastFxSoundSuccessShoot(HitResult);
+		/*
 		//make impact decal
 		MakeImpactDecal(HitResult, ImpactDecalMat, .9f * ImpactDecalSize, 1.1f * ImpactDecalSize);
 
 		//create impact particles
-		MakeImpactParticles(ImpactParticle, HitResult, .66f);
+		MakeImpactParticles(ImpactParticle, HitResult, .66f);*/
 	}
 
+	MulticastFxSoundShoot(HitResult, WeaponData);
+
+	/*
 	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
 	{
 		//make the beam visuals
@@ -90,8 +112,45 @@ bool UWeaponComponent::Shot()
 	//play sound if gun empty
 	if (LoadedAmmo == 0)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotEmptySound, GetOwner()->GetActorLocation());
-
+	*/
 	return true;
+}
+
+void UWeaponComponent::MulticastFxSoundShoot_Implementation(FHitResult HitResult, FLaserWeaponData WeaponData)
+{
+	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
+	{
+		//make the beam visuals
+		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), HitResult.ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
+
+
+		//make muzzle smoke
+		UGameplayStatics::SpawnEmitterAttached(MuzzleSmokeParticle, this, FName("MuzzleFlashSocket"));
+
+		//apply shake
+		auto PlayerController = Cast<AShooterController>(Cast<AShooterCharacter>(GetOwner())->GetController());
+		if (PlayerController && ShootShake)
+			PlayerController->ClientPlayCameraShake(ShootShake);
+	}
+
+	//play the shot sound
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotSound, WeaponData.MuzzleTransform.GetLocation());
+
+	//add spread
+	CurrentSpread = FMath::Min(WeaponMaxSpread, CurrentSpread + WeaponSpreadPerShot);
+
+	//play sound if gun empty
+	if (LoadedAmmo == 0)
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotEmptySound, GetOwner()->GetActorLocation());
+}
+
+void UWeaponComponent::MulticastFxSoundSuccessShoot_Implementation(FHitResult HitResult)
+{
+	//make impact decal
+	MakeImpactDecal(HitResult, ImpactDecalMat, .9f * ImpactDecalSize, 1.1f * ImpactDecalSize);
+
+	//create impact particles
+	MakeImpactParticles(ImpactParticle, HitResult, .66f);
 }
 
 void UWeaponComponent::Reload()
@@ -117,8 +176,6 @@ void UWeaponComponent::GetAmmo(int Count)
 
 bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData)
 {
-	/*if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
-		return false;*/
 	FVector LookLocation = WeaponData.LookTransform.GetLocation();
 	FVector LookDirection = WeaponData.LookTransform.GetRotation().GetForwardVector();
 

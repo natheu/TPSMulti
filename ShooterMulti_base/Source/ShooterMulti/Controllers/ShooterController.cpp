@@ -127,15 +127,26 @@ void AShooterController::EndJump()
 
 void AShooterController::StartAim()
 {
+	ServerStartAim();
+}
+
+void AShooterController::ServerStartAim_Implementation()
+{
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->StartAim();
+		ShooterCharacter->MulticastStartAim();
 }
 
 void AShooterController::EndAim()
 {
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->EndAim();
+	ServerEndAim();
 }
+
+void AShooterController::ServerEndAim_Implementation()
+{
+	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->MulticastEndAim();
+}
+
 
 void AShooterController::StartShoot()
 {

@@ -22,6 +22,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Character|Health", meta = (ClampMin = "0.0"))
 	float MaxHealth = 100.f;
 
+
+	UFUNCTION()
+	void OnRep_CheckHealth();
+	UPROPERTY(ReplicatedUsing = OnRep_CheckHealth)
 	float Health = MaxHealth;
 
 	UPROPERTY(EditAnywhere, Category = "Character|Health", meta = (ClampMin = "0.0"))
@@ -50,6 +54,8 @@ protected:
 
 	void InitRagdoll();
 	void ActivateRagdoll();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 

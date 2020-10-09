@@ -8,6 +8,7 @@
 
 AEnemySpawnerButton::AEnemySpawnerButton()
 {
+	bReplicates = true;
 }
 
 void AEnemySpawnerButton::BeginPlay()

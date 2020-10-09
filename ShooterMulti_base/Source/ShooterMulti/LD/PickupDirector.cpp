@@ -6,7 +6,7 @@ APickupDirector* APickupDirector::Instance = nullptr;
 
 APickupDirector::APickupDirector()
 {
-	bReplicates = true;
+	//bReplicates = true;
 	bAlwaysRelevant = true;
 }
 
@@ -28,6 +28,8 @@ void APickupDirector::BeginPlay()
 
 void APickupDirector::SpawnTick()
 {
+	if (GetLocalRole() != ENetRole::ROLE_Authority)
+		return;
 	if (bIsFull)
 		return;
 	
