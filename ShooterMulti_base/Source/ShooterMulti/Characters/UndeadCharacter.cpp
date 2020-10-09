@@ -17,6 +17,7 @@ AUndeadCharacter::AUndeadCharacter()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	bAlwaysRelevant = true;
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned

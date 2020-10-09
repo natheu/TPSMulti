@@ -384,9 +384,9 @@ void AShooterCharacter::InflictPushButton()
 		return;
 
 	/*TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, TSubclassOf<AEnemySpawnerButton>());*/
+	GetOverlappingActors(OverlappingActors, TSubclassOf<AEnemySpawnerButton>());
 
-	/*if (OverlappingActors.Num() > 0)
+	if (OverlappingActors.Num() > 0)
 	{
 		AEnemySpawnerButton* Button = Cast<AEnemySpawnerButton>(OverlappingActors[0]);
 
