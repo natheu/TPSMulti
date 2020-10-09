@@ -34,12 +34,18 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastStartReload();
 	void MulticastStartReload_Implementation();
+
 	UFUNCTION(NetMulticast, Reliable)
-		void MulticastAbortReload();
-	void MulticastAbortReload_Implementation();
-	/*UFUNCTION(NetMulticast, Reliable)
 	void MulticastAbortReload();
-	void MulticastAbortReload_Implementation();*/
+	void MulticastAbortReload_Implementation();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerInitTeam(ETeam InTeam);
+	void ServerInitTeam_Implementation(ETeam InTeam);
+	bool ServerInitTeam_Validate(ETeam InTeam) { return true; }
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastInitTeam(ETeam InTeam);
+	void MulticastInitTeam_Implementation(ETeam InTeam);
 
 
 

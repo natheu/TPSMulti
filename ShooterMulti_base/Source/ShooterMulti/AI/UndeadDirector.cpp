@@ -50,25 +50,22 @@ void AUndeadDirector::SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team)
 
 	if (SpawnPoints.Num() == 0 || !temp->CanAddAI())
 		return;
-	MultiCastSpawnEnemy(temp, pos, rot, Team);
+	MultiCastSpawnEnemy(pos, rot, Team);
 
 	//pos.Y += 100; // avoid in ground spawn.
-
 
 	temp->AddAI();
 
 	/*FActorSpawnParameters spawnParameters;
 	spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	auto undead = GetWorld()->SpawnActor<AUndeadCharacter>(UndeadBlueprint, pos, rot, spawnParameters);
-
 	undead->SetTeam(Team);*/
 }
 
-void AUndeadDirector::MultiCastSpawnEnemy_Implementation(ADeathMatchGS* tempDeathMatchGS, FVector pos, const FRotator& rot, ETeam Team)
+void AUndeadDirector::MultiCastSpawnEnemy_Implementation(FVector pos, const FRotator& rot, ETeam Team)
 {
 	pos.Y += 100;
 
-	//tempDeathMatchGS->AddAI();
 	FActorSpawnParameters spawnParameters;
 	spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	auto undead = GetWorld()->SpawnActor<AUndeadCharacter>(UndeadBlueprint, pos, rot, spawnParameters);

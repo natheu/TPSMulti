@@ -46,8 +46,8 @@ public:
 	void SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team = ETeam::AI);
 
 	UFUNCTION(NetMultiCast, Reliable)
-	void MultiCastSpawnEnemy(ADeathMatchGS* tempDeathMatchGS, FVector pos, const FRotator& rot, ETeam Team);
-	void MultiCastSpawnEnemy_Implementation(ADeathMatchGS* tempDeathMatchGS, FVector pos, const FRotator& rot, ETeam Team);
+	void MultiCastSpawnEnemy(FVector pos, const FRotator& rot, ETeam Team);
+	void MultiCastSpawnEnemy_Implementation(FVector pos, const FRotator& rot, ETeam Team);
 
 	void SpawnTickEnemy();
 	void UpdateFrequencies(class ADeathMatchGS* gs);

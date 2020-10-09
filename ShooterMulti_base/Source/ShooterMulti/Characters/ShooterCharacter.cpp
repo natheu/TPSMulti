@@ -70,10 +70,22 @@ void AShooterCharacter::InitPlayer()
 {
 	const FPlayerInfo& PlayerInfo = static_cast<UPlayerGI*>(GetGameInstance())->GetUserInfo();
 
-	InitTeamColor(static_cast<ETeam>(PlayerInfo.TeamNum));
+	//InitTeamColor(static_cast<ETeam>(PlayerInfo.TeamNum));
+	ServerInitTeam(static_cast<ETeam>(PlayerInfo.TeamNum));
 }
 
 void AShooterCharacter::InitTeamColor(ETeam InTeam)
+{
+	SetTeam(InTeam);
+	OnTeamSwitch.Broadcast();
+}
+
+void AShooterCharacter::ServerInitTeam_Implementation(ETeam InTeam)
+{
+	MulticastInitTeam(InTeam);
+}
+
+void AShooterCharacter::MulticastInitTeam_Implementation(ETeam InTeam)
 {
 	SetTeam(InTeam);
 	OnTeamSwitch.Broadcast();
