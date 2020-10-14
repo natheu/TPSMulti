@@ -190,6 +190,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void Punch();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPunch();
+	void MulticastPunch_Implementation();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Character|Shooter")
 	void RefreshTeamHUD(ETeam InTeam);

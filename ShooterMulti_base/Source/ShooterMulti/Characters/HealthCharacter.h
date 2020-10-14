@@ -82,6 +82,9 @@ public:
 								 class AController*		EventInstigator,
 								 AActor*				DamageCauser) override;
 
+	UFUNCTION()
+	void UpdateTeamScore(AActor* DamageCauser);
+
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastUpdateTakeDamage(const FVector_NetQuantize& PointDamageEvent, USoundBase* CrtHitSound, float TotalDamage);
 	void MulticastUpdateTakeDamage_Implementation(const FVector_NetQuantize& PointDamageEvent, USoundBase* CrtHitSound, float TotalDamage);

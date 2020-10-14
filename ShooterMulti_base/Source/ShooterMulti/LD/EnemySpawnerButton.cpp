@@ -33,7 +33,8 @@ void AEnemySpawnerButton::Activate(ETeam team)
 	auto lambda = [this]()
 	{
 		auto dir = AUndeadDirector::GetInstance();
-		dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam);
+		if (GetLocalRole() == ENetRole::ROLE_Authority)
+			dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam);
 	};
 	if (GetLocalRole() == ENetRole::ROLE_Authority)
 		GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, lambda, SecondPerSpawn, true);
@@ -68,5 +69,6 @@ void AEnemySpawnerButton::Reset()
 {
 	SetTeam(ETeam::None);
 
-	GetWorldTimerManager().ClearTimer(mSpawnTimerHandle);
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+		GetWorldTimerManager().ClearTimer(mSpawnTimerHandle);
 }

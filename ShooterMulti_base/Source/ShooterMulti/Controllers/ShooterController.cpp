@@ -207,8 +207,15 @@ void AShooterController::ServerPushButton_Implementation()
 
 void AShooterController::Punch()
 {
+	ServerPunch();
+	/*if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->Punch();*/
+}
+
+void AShooterController::ServerPunch_Implementation()
+{
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->Punch();
+		ShooterCharacter->MulticastPunch();
 }
 
 void AShooterController::DisableInput(APlayerController* PlayerController)

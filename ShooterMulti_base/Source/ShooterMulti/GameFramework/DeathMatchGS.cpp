@@ -35,6 +35,8 @@ void ADeathMatchGS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ADeathMatchGS, CurrentTime);
 	DOREPLIFETIME(ADeathMatchGS, CurrentAICount);
+	DOREPLIFETIME(ADeathMatchGS, RedTeamScore);
+	DOREPLIFETIME(ADeathMatchGS, BlueTeamScore);
 }
 
 void ADeathMatchGS::AdvanceTimer()
@@ -77,7 +79,7 @@ void ADeathMatchGS::RemovePlayerState(APlayerState* PlayerState)
 
 bool ADeathMatchGS::CanAddAI()
 {
-	if(GetLocalRole() == ENetRole::ROLE_Authority || GetLocalRole() == ENetRole::ROLE_SimulatedProxy)
+	if(GetLocalRole() == ENetRole::ROLE_Authority)
 		return Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->MaxAIPerPlayer* PlayerArray.Num() > CurrentAICount;
 	else
 		return false;

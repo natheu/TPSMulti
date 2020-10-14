@@ -9,6 +9,7 @@
 #include "Engine.h"
 #include "Net/UnrealNetwork.h"
 
+
 AHealthCharacter::AHealthCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	//Create Punch Collision
@@ -130,9 +131,6 @@ float AHealthCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Dama
 		else
 			TotalDamage = DamageAmount;
 
-		/*Health = FMath::Max(0.f, Health - TotalDamage);
-		if (CrtHitSound)
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, PointDamageEvent->HitInfo.Location);*/
 		if (GetLocalRole() == ENetRole::ROLE_Authority)
 		{
 			Health = FMath::Max(0.f, Health - TotalDamage);
@@ -143,10 +141,33 @@ float AHealthCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Dama
 	if (IsDead())
 	{
 		if (GetLocalRole() == ENetRole::ROLE_Authority)
+		{
+			UpdateTeamScore(DamageCauser);
 			MulticastUpdateDeath();
+		}
 	}
 
 	return TotalDamage;
+}
+
+void AHealthCharacter::UpdateTeamScore(AActor* DamageCauser)
+{
+	AHealthCharacter* HealthCharacterCauser = Cast<AHealthCharacter>(DamageCauser);
+
+	ADeathMatchGS* gameState = Cast<ADeathMatchGS>(GetWorld()->GetGameState());
+
+	if (!HealthCharacterCauser || !gameState)
+		return;
+
+	if (HealthCharacterCauser->Team == ETeam::AI)
+	{
+		if (this->Team == ETeam::Blue)
+			gameState->AddScore(ETeam::Red);
+		else
+			gameState->AddScore(ETeam::Blue);
+	}
+	else
+		gameState->AddScore(HealthCharacterCauser->Team);
 }
 
 void AHealthCharacter::MulticastUpdateTakeDamage_Implementation(const FVector_NetQuantize& Location, USoundBase* CrtHitSound, float TotalDamage)

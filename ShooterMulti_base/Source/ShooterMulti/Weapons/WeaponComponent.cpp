@@ -77,12 +77,6 @@ bool UWeaponComponent::Shot()
 	if (ShootLaser(GetOwner(), HitResult, WeaponData))
 	{
 		MulticastFxSoundSuccessShoot(HitResult);
-		/*
-		//make impact decal
-		MakeImpactDecal(HitResult, ImpactDecalMat, .9f * ImpactDecalSize, 1.1f * ImpactDecalSize);
-
-		//create impact particles
-		MakeImpactParticles(ImpactParticle, HitResult, .66f);*/
 	}
 
 	MulticastFxSoundShoot(HitResult, WeaponData);

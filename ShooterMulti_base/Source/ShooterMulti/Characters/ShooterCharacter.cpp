@@ -442,6 +442,10 @@ void AShooterCharacter::Punch()
 	PlayPunchAnim();
 }
 
+void AShooterCharacter::MulticastPunch_Implementation()
+{
+	Punch();
+}
 void AShooterCharacter::PlayPunchAnim()
 {
 	Cast<UShooterCharacterAnim>(GetMesh()->GetAnimInstance())->PlayPunchMontage();

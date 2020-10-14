@@ -79,7 +79,13 @@ protected:
 	void ServerPushButton();
 	void ServerPushButton_Implementation();
 	bool ServerPushButton_Validate() { return true; }
+
+
 	void Punch();
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerPunch();
+	void ServerPunch_Implementation();
+	bool ServerPunch_Validate() { return true; }
 	
 
 public:
