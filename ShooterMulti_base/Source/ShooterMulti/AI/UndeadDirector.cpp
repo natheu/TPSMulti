@@ -9,7 +9,7 @@ AUndeadDirector* AUndeadDirector::Instance = nullptr;
 AUndeadDirector::AUndeadDirector()
 {
 	bAlwaysRelevant = true;
-	bReplicates = false;
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -48,7 +48,6 @@ void AUndeadDirector::SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team)
 
 	if (SpawnPoints.Num() == 0 || !temp->CanAddAI())
 		return;
-	//MultiCastSpawnEnemy(pos, rot, Team);
 
 	pos.Y += 100; // avoid in ground spawn.
 

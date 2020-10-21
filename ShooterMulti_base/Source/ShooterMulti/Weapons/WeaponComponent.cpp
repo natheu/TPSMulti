@@ -84,42 +84,18 @@ bool UWeaponComponent::Shot()
 	WeaponData.Knockback = WeaponKnockback;
 	WeaponData.Spread = CurrentSpread;
 
+	
 	FHitResult HitResult;
-	if (ShootLaser(GetOwner(), HitResult, WeaponData))
+	FVector LookDirection;
+	if (ShootLaser(GetOwner(), HitResult, WeaponData, LookDirection))
 	{
 		if (GetOwner()->GetLocalRole() == ENetRole::ROLE_Authority)
-			MulticastFxSoundSuccessShoot(HitResult.ImpactPoint, HitResult.ImpactNormal, HitResult.Normal);
+			MulticastFxSoundSuccessShoot(LookDirection, WeaponData);
 		
 	}
 	if (GetOwner()->GetLocalRole() == ENetRole::ROLE_Authority)
 		MulticastFxSoundShoot(HitResult.ImpactPoint, WeaponData);
 
-	/*
-	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
-	{
-		//make the beam visuals
-		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), HitResult.ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
-		
-
-		//make muzzle smoke
-		UGameplayStatics::SpawnEmitterAttached(MuzzleSmokeParticle, this, FName("MuzzleFlashSocket"));
-
-		//apply shake
-		auto PlayerController = Cast<AShooterController>(Cast<AShooterCharacter>(GetOwner())->GetController());
-		if (PlayerController && ShootShake)
-			PlayerController->ClientPlayCameraShake(ShootShake);
-	}
-
-	//play the shot sound
-	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotSound, WeaponData.MuzzleTransform.GetLocation());
-
-	//add spread
-	CurrentSpread = FMath::Min(WeaponMaxSpread, CurrentSpread + WeaponSpreadPerShot);
-
-	//play sound if gun empty
-	if (LoadedAmmo == 0)
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotEmptySound, GetOwner()->GetActorLocation());
-	*/
 	return true;
 }
 
@@ -151,13 +127,13 @@ void UWeaponComponent::MulticastFxSoundShoot_Implementation(FVector_NetQuantize 
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotEmptySound, GetOwner()->GetActorLocation());
 }
 
-void UWeaponComponent::MulticastFxSoundSuccessShoot_Implementation(FVector_NetQuantize ImpactPoint, FVector_NetQuantizeNormal ImpactNormal, FVector_NetQuantizeNormal Normal)
+void UWeaponComponent::MulticastFxSoundSuccessShoot_Implementation(FVector LookTransform, 
+																	FLaserWeaponData WeaponData)
 {
 	FHitResult HitResult;
-	HitResult.ImpactPoint = ImpactPoint;
-	HitResult.ImpactNormal = ImpactNormal;
-	HitResult.Normal = Normal;
-	//HitResult.Actor = Actor;
+
+	ShootLaserForFX(GetOwner(), HitResult, WeaponData, LookTransform);
+
 	//make impact decal
 	MakeImpactDecal(HitResult, ImpactDecalMat, .9f * ImpactDecalSize, 1.1f * ImpactDecalSize);
 
@@ -186,7 +162,7 @@ void UWeaponComponent::GetAmmo(int Count)
 
 // Weapon Utiliy
 
-bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData)
+bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, FVector& outLookDirection)
 {
 	FVector LookLocation = WeaponData.LookTransform.GetLocation();
 	FVector LookDirection = WeaponData.LookTransform.GetRotation().GetForwardVector();
@@ -195,6 +171,7 @@ bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const F
 	if (WeaponData.Spread > 0.f)
 		LookDirection = UKismetMathLibrary::RandomUnitVectorInConeInRadians(LookDirection,
 																			FMath::DegreesToRadians(WeaponData.Spread * .5f));
+	outLookDirection = LookDirection;
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(Causer);
@@ -240,6 +217,25 @@ bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const F
 		HitResult.ImpactPoint = LookLocation + LookDirection * WeaponData.MaxDistance;
 		HitResult.Distance = WeaponData.MaxDistance;
 		return false;
+	}
+}
+
+void UWeaponComponent::ShootLaserForFX(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, const FVector& LookDirection)
+{
+	FVector LookLocation = WeaponData.LookTransform.GetLocation();
+
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(Causer);
+	CollisionParams.bTraceComplex = true;
+	CollisionParams.bReturnPhysicalMaterial = true;
+
+	if (!GetWorld()->LineTraceSingleByChannel(HitResult,
+		LookLocation,
+		LookLocation + LookDirection * WeaponData.MaxDistance,
+		ECC_Visibility, CollisionParams))
+	{
+		HitResult.ImpactPoint = LookLocation + LookDirection * WeaponData.MaxDistance;
+		HitResult.Distance = WeaponData.MaxDistance;
 	}
 }
 

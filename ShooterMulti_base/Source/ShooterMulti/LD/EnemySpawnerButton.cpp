@@ -33,12 +33,12 @@ void AEnemySpawnerButton::Activate(ETeam team)
 	auto lambda = [this]()
 	{
 		auto dir = AUndeadDirector::GetInstance();
-		if (GetLocalRole() == ENetRole::ROLE_Authority && GetWorld()->GetGameState()->GetLocalRole() == ENetRole::ROLE_Authority)
+		if (GetLocalRole() == ENetRole::ROLE_Authority)
 			dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam);
 	};
 	auto dir = AUndeadDirector::GetInstance();
 
-	if (GetLocalRole() == ENetRole::ROLE_Authority && dir->GetWorld()->GetGameState()->GetLocalRole() == ENetRole::ROLE_Authority)
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
 		GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, lambda, SecondPerSpawn, true);
 
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ActivateSound, GetActorLocation());

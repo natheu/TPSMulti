@@ -34,7 +34,9 @@ private:
 	// Weapon Utility.
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter|Weapon")
-	bool ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData);
+	bool ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, FVector& LookDirection);
+
+	void ShootLaserForFX(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, const FVector& LookDirection);
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter|Weapon")
 	void MakeImpactDecal(	const FHitResult& FromHit,
@@ -157,8 +159,8 @@ public:
 	void MulticastFxSoundShoot(FVector_NetQuantize ImpactPoint ,FLaserWeaponData WeaponData);
 	void MulticastFxSoundShoot_Implementation(FVector_NetQuantize ImpactPoint ,FLaserWeaponData WeaponData);
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFxSoundSuccessShoot(FVector_NetQuantize ImpactPoint, FVector_NetQuantizeNormal ImpactNormal, FVector_NetQuantizeNormal Normal);
-	void MulticastFxSoundSuccessShoot_Implementation(FVector_NetQuantize ImpactPoint, FVector_NetQuantizeNormal ImpactNormal, FVector_NetQuantizeNormal Normal);
+	void MulticastFxSoundSuccessShoot(FVector LookDirection, FLaserWeaponData WeaponData);
+	void MulticastFxSoundSuccessShoot_Implementation(FVector LookDirection, FLaserWeaponData WeaponData);
 
 	void Reload();
 
