@@ -47,8 +47,6 @@ private:
 	void MulticastInitTeam(ETeam InTeam);
 	void MulticastInitTeam_Implementation(ETeam InTeam);
 
-
-
 protected:
 
 	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Character|Shooter")
@@ -82,6 +80,11 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Character|Shooter")
 	void InvincibilityFX(float Duration);
 	void InvincibilityFX_Implementation(float Duration) {};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString pseudo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool ready{ false };
 
 public:
 
@@ -187,6 +190,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Character|Shooter")
 	void RefreshTeamHUD(ETeam InTeam);
 	void RefreshTeamHUD_Implementation(ETeam InTeam) {};
+
+	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
+		FString Pseudo() { return pseudo; }
+	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
+		bool Ready() { return ready; }
 
 	void StartDisapear() override;
 	void FinishDisapear() override;
