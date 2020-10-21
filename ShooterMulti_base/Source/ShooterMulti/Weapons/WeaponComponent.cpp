@@ -84,7 +84,6 @@ bool UWeaponComponent::Shot()
 	WeaponData.Knockback = WeaponKnockback;
 	WeaponData.Spread = CurrentSpread;
 
-	
 	FHitResult HitResult;
 	FVector LookDirection;
 	if (ShootLaser(GetOwner(), HitResult, WeaponData, LookDirection))
@@ -101,8 +100,8 @@ bool UWeaponComponent::Shot()
 
 void UWeaponComponent::MulticastFxSoundShoot_Implementation(FVector_NetQuantize ImpactPoint, FLaserWeaponData WeaponData)
 {
-	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
-	{
+	//if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
+	//{
 		//make the beam visuals
 		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
 
@@ -114,7 +113,7 @@ void UWeaponComponent::MulticastFxSoundShoot_Implementation(FVector_NetQuantize 
 		auto PlayerController = Cast<AShooterController>(Cast<AShooterCharacter>(GetOwner())->GetController());
 		if (PlayerController && ShootShake)
 			PlayerController->ClientPlayCameraShake(ShootShake);
-	}
+	//}
 
 	//play the shot sound
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotSound, WeaponData.MuzzleTransform.GetLocation());
