@@ -82,13 +82,7 @@ void AShooterCharacter::InitTeamColor(ETeam InTeam)
 
 void AShooterCharacter::ServerInitTeam_Implementation(ETeam InTeam)
 {
-	MulticastInitTeam(InTeam);
-}
-
-void AShooterCharacter::MulticastInitTeam_Implementation(ETeam InTeam)
-{
 	SetTeam(InTeam);
-	OnTeamSwitch.Broadcast();
 }
 
 void AShooterCharacter::Invincibility(float Duration)
@@ -115,14 +109,12 @@ void AShooterCharacter::BeginPlay()
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (GetLocalRole() == ENetRole::ROLE_Authority)
-	{
-		if (IsDead())
-			return;
 
-		if (bIsShooting && !Weapon->Shot())
-			StartReload();
-	}
+	if (IsDead())
+		return;
+
+	if (bIsShooting && !Weapon->Shot())
+		StartReload();
 
 	// Anim aim offsets
 	FRotator LookRotation = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation());

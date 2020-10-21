@@ -100,7 +100,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_CheckAmmo, BlueprintReadOnly, EditAnywhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
 	int AmmoCount = 50;
 
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Character|Shooter|Weapon")
+	UFUNCTION()
+	void OnRep_CheckLoadedAmmo();
+	UPROPERTY(ReplicatedUsing = OnRep_CheckLoadedAmmo, Transient, BlueprintReadOnly, Category = "Character|Shooter|Weapon")
 	int LoadedAmmo;
 
 	UPROPERTY(BlueprintReadOnly, EditAnyWhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
@@ -152,11 +154,11 @@ public:
 	bool Shot();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFxSoundShoot(FHitResult HitResult, FLaserWeaponData WeaponData);
-	void MulticastFxSoundShoot_Implementation(FHitResult HitResult, FLaserWeaponData WeaponData);
+	void MulticastFxSoundShoot(FVector_NetQuantize ImpactPoint ,FLaserWeaponData WeaponData);
+	void MulticastFxSoundShoot_Implementation(FVector_NetQuantize ImpactPoint ,FLaserWeaponData WeaponData);
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFxSoundSuccessShoot(FHitResult HitResult);
-	void MulticastFxSoundSuccessShoot_Implementation(FHitResult HitResult);
+	void MulticastFxSoundSuccessShoot(FVector_NetQuantize ImpactPoint, FVector_NetQuantizeNormal ImpactNormal, FVector_NetQuantizeNormal Normal);
+	void MulticastFxSoundSuccessShoot_Implementation(FVector_NetQuantize ImpactPoint, FVector_NetQuantizeNormal ImpactNormal, FVector_NetQuantizeNormal Normal);
 
 	void Reload();
 

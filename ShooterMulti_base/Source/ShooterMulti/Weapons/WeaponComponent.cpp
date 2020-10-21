@@ -44,6 +44,7 @@ void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UWeaponComponent, AmmoCount);
+	DOREPLIFETIME(UWeaponComponent, LoadedAmmo);
 }
 
 void UWeaponComponent::OnRep_CheckAmmo()
@@ -52,6 +53,14 @@ void UWeaponComponent::OnRep_CheckAmmo()
 		AmmoCount = MaxAmmo;
 	else if (AmmoCount < 0)
 		AmmoCount = 0;
+}
+
+void UWeaponComponent::OnRep_CheckLoadedAmmo()
+{
+	if (LoadedAmmo > WeaponMagazineSize)
+		LoadedAmmo = WeaponMagazineSize;
+	else if (LoadedAmmo < 0)
+		LoadedAmmo = 0;
 }
 
 bool UWeaponComponent::Shot()
@@ -65,7 +74,9 @@ bool UWeaponComponent::Shot()
 		return false;
 
 	--LoadedAmmo;
-
+	
+	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
+		return true;
 	FLaserWeaponData WeaponData;
 	WeaponData.MuzzleTransform = GetSocketTransform("MuzzleFlashSocket");
 	WeaponData.LookTransform = Cast<AShooterCharacter>(GetOwner())->GetCameraComponent()->GetCameraHandle()->GetComponentTransform();
@@ -76,10 +87,12 @@ bool UWeaponComponent::Shot()
 	FHitResult HitResult;
 	if (ShootLaser(GetOwner(), HitResult, WeaponData))
 	{
-		MulticastFxSoundSuccessShoot(HitResult);
+		if (GetOwner()->GetLocalRole() == ENetRole::ROLE_Authority)
+			MulticastFxSoundSuccessShoot(HitResult.ImpactPoint, HitResult.ImpactNormal, HitResult.Normal);
+		
 	}
-
-	MulticastFxSoundShoot(HitResult, WeaponData);
+	if (GetOwner()->GetLocalRole() == ENetRole::ROLE_Authority)
+		MulticastFxSoundShoot(HitResult.ImpactPoint, WeaponData);
 
 	/*
 	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
@@ -110,12 +123,12 @@ bool UWeaponComponent::Shot()
 	return true;
 }
 
-void UWeaponComponent::MulticastFxSoundShoot_Implementation(FHitResult HitResult, FLaserWeaponData WeaponData)
+void UWeaponComponent::MulticastFxSoundShoot_Implementation(FVector_NetQuantize ImpactPoint, FLaserWeaponData WeaponData)
 {
 	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
 	{
 		//make the beam visuals
-		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), HitResult.ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
+		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
 
 
 		//make muzzle smoke
@@ -138,8 +151,13 @@ void UWeaponComponent::MulticastFxSoundShoot_Implementation(FHitResult HitResult
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotEmptySound, GetOwner()->GetActorLocation());
 }
 
-void UWeaponComponent::MulticastFxSoundSuccessShoot_Implementation(FHitResult HitResult)
+void UWeaponComponent::MulticastFxSoundSuccessShoot_Implementation(FVector_NetQuantize ImpactPoint, FVector_NetQuantizeNormal ImpactNormal, FVector_NetQuantizeNormal Normal)
 {
+	FHitResult HitResult;
+	HitResult.ImpactPoint = ImpactPoint;
+	HitResult.ImpactNormal = ImpactNormal;
+	HitResult.Normal = Normal;
+	//HitResult.Actor = Actor;
 	//make impact decal
 	MakeImpactDecal(HitResult, ImpactDecalMat, .9f * ImpactDecalSize, 1.1f * ImpactDecalSize);
 
@@ -230,6 +248,8 @@ void UWeaponComponent::MakeImpactDecal(	const FHitResult& FromHit,
 										float ImpactDecalSizeMin,
 										float ImpactDecalSizeMax)
 {
+	if (FromHit.Actor == nullptr)
+		return;
 	auto StaticMeshComponent = FromHit.Actor->FindComponentByClass<UStaticMeshComponent>();
 	if (StaticMeshComponent)
 	{

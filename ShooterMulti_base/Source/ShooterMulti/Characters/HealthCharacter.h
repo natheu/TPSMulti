@@ -16,7 +16,7 @@ protected:
 	bool bIsDisapearing;
 	TArray<UMaterialInstanceDynamic*> DissolveMaterials;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Character")
 	ETeam Team;
 
 	UPROPERTY(EditAnywhere, Category = "Character|Health", meta = (ClampMin = "0.0"))
@@ -75,6 +75,9 @@ public:
 	ETeam GetTeam() const;
 
 	void SetTeam(ETeam InTeam);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnTeamSwitch();
+	void MulticastOnTeamSwitch_Implementation();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	virtual float	TakeDamage	(float					DamageAmount,

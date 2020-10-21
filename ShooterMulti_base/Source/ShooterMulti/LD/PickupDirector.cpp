@@ -6,7 +6,7 @@ APickupDirector* APickupDirector::Instance = nullptr;
 
 APickupDirector::APickupDirector()
 {
-	//bReplicates = true;
+	bReplicates = true;
 	bAlwaysRelevant = true;
 }
 

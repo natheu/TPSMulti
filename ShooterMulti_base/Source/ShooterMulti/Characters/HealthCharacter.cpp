@@ -62,6 +62,7 @@ void AHealthCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AHealthCharacter, Health);
+	DOREPLIFETIME(AHealthCharacter, Team);
 }
 
 void AHealthCharacter::OnRep_CheckHealth()
@@ -340,5 +341,10 @@ void AHealthCharacter::Reset()
 void AHealthCharacter::SetTeam(ETeam InTeam)
 {
 	Team = InTeam;
+	MulticastOnTeamSwitch();
+}
+
+void AHealthCharacter::MulticastOnTeamSwitch_Implementation()
+{
 	OnTeamSwitch.Broadcast();
 }

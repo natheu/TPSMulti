@@ -33,6 +33,7 @@ void ADeathMatchGS::BeginPlay()
 void ADeathMatchGS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(ADeathMatchGS, CurrentTime);
 	DOREPLIFETIME(ADeathMatchGS, CurrentAICount);
 	DOREPLIFETIME(ADeathMatchGS, RedTeamScore);

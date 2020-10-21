@@ -60,17 +60,6 @@ void AUndeadDirector::SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team)
 	undead->SetTeam(Team);
 }
 
-void AUndeadDirector::MultiCastSpawnEnemy_Implementation(FVector pos, const FRotator& rot, ETeam Team)
-{
-	pos.Y += 100;
-
-	FActorSpawnParameters spawnParameters;
-	spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	auto undead = GetWorld()->SpawnActor<AUndeadCharacter>(UndeadBlueprint, pos, rot, spawnParameters);
-
-	undead->SetTeam(Team);
-}
-
 void AUndeadDirector::SpawnTickEnemy()
 {
 	if (GetLocalRole() == ENetRole::ROLE_Authority)

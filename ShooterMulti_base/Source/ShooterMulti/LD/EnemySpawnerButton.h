@@ -37,6 +37,7 @@ public:
 
 	AEnemySpawnerButton();
 
+	UFUNCTION()
 	void Activate(ETeam team);
 
 	UFUNCTION()

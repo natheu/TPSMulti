@@ -17,9 +17,9 @@ protected:
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Shooter|GameState")
 	ADeathMatchGM* GameMode = nullptr;
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Shooter|GameState")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shooter|GameState")
 	int32 CurrentTime;
-	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Shooter|GameState")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shooter|GameState")
 	int32 CurrentAICount = 0;
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shooter|GameState")
 	int32 RedTeamScore = 0;

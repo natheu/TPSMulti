@@ -11,6 +11,7 @@ class SHOOTERMULTI_API AUndeadDirector : public AActor
 	GENERATED_BODY()
 	
 protected:
+
 	static AUndeadDirector* Instance;
 
 	FTimerHandle SpawnTimerHandle;
@@ -44,10 +45,6 @@ public:
 	static AUndeadDirector* GetInstance();
 
 	void SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team = ETeam::AI);
-
-	UFUNCTION(NetMultiCast, Reliable)
-	void MultiCastSpawnEnemy(FVector pos, const FRotator& rot, ETeam Team);
-	void MultiCastSpawnEnemy_Implementation(FVector pos, const FRotator& rot, ETeam Team);
 
 	void SpawnTickEnemy();
 	void UpdateFrequencies(class ADeathMatchGS* gs);

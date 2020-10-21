@@ -43,9 +43,6 @@ private:
 	void ServerInitTeam(ETeam InTeam);
 	void ServerInitTeam_Implementation(ETeam InTeam);
 	bool ServerInitTeam_Validate(ETeam InTeam) { return true; }
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastInitTeam(ETeam InTeam);
-	void MulticastInitTeam_Implementation(ETeam InTeam);
 
 
 
