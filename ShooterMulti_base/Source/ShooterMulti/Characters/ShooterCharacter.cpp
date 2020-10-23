@@ -1,6 +1,7 @@
 #include "ShooterCharacter.h"
 #include "../Animations/ShooterCharacterAnim.h"
 #include "../GameFramework/PlayerGI.h"
+#include "../GameFramework/DeathMatchGM.h"
 #include "../LD/EnemySpawnerButton.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -9,6 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -39,6 +41,14 @@ AShooterCharacter::AShooterCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void AShooterCharacter:: GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AShooterCharacter, AimPitch);
+	DOREPLIFETIME(AShooterCharacter, AimYaw);
+}
+
 EShooterCharacterState AShooterCharacter::GetState() const
 {
 	return State;
@@ -60,7 +70,7 @@ UPlayerCameraComponent* AShooterCharacter::GetCameraComponent()
 	return Camera;
 }
 
-void AShooterCharacter::UpdateAimOffsets(float Pitch, float Yaw)
+void AShooterCharacter::ServerUpdateAimOffsets_Implementation(float Pitch, float Yaw)
 {
 	AimPitch = Pitch;
 	AimYaw = Yaw;
@@ -70,7 +80,6 @@ void AShooterCharacter::InitPlayer()
 {
 	const FPlayerInfo& PlayerInfo = static_cast<UPlayerGI*>(GetGameInstance())->GetUserInfo();
 
-	//InitTeamColor(static_cast<ETeam>(PlayerInfo.TeamNum));
 	ServerInitTeam(static_cast<ETeam>(PlayerInfo.TeamNum));
 }
 
@@ -115,13 +124,15 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 	if (bIsShooting && !Weapon->Shot())
 		StartReload();
+	if(GetWorld()->GetFirstPlayerController() == GetController())
+	{
+		// Anim aim offsets
+		FRotator LookRotation = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation());
+		AimPitch = UKismetMathLibrary::ClampAngle(LookRotation.Pitch, -90.f, 90.f);
+		AimYaw = UKismetMathLibrary::ClampAngle(LookRotation.Yaw, -90.f, 90.f); // May use later for smooth rotation
 
-	// Anim aim offsets
-	FRotator LookRotation = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation());
-	AimPitch = UKismetMathLibrary::ClampAngle(LookRotation.Pitch, -90.f, 90.f);
-	//AimYaw = UKismetMathLibrary::ClampAngle(lookRotation.Yaw, -90.f, 90.f); // May use later for smooth rotation
-
-	UpdateAimOffsets(AimPitch, AimYaw);
+		ServerUpdateAimOffsets(AimPitch, AimYaw);
+	}
 
 	Camera->ShakeCamera(uint8(State), GetLastMovementInputVector().Size());
 }

@@ -58,11 +58,13 @@ protected:
 	EShooterCharacterState State;
 	EShooterCharacterState PrevState;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	float AimPitch;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	float AimYaw;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void UpdateAimOffsets(float Pitch, float Yaw);
 
@@ -79,6 +81,12 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Character|Shooter")
 	void InvincibilityFX(float Duration);
 	void InvincibilityFX_Implementation(float Duration) {};
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerUpdateAimOffsets(float Pitch, float Yaw);
+	void ServerUpdateAimOffsets_Implementation(float Pitch, float Yaw);
+	bool ServerUpdateAimOffsets_Validate(float Pitch, float Yaw) { return true; }
+
 
 public:
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameFramework/Character.h"
+//#include "../GameFramework/DeathMatchGM.h"
 #include "../GameFramework/ShooterPS.h"
 #include "../GameFramework/Resetable.h"
 #include "HealthCharacter.generated.h"
@@ -76,8 +77,8 @@ public:
 
 	void SetTeam(ETeam InTeam);
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastOnTeamSwitch();
-	void MulticastOnTeamSwitch_Implementation();
+	void MulticastOnTeamSwitch(ETeam InTeam);
+	void MulticastOnTeamSwitch_Implementation(ETeam InTeam);
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	virtual float	TakeDamage	(float					DamageAmount,
@@ -116,5 +117,6 @@ public:
 
 	virtual void StartDisapear();
 	virtual void UpdateDisapear();
+
 	virtual void FinishDisapear();
 };

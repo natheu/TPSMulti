@@ -44,7 +44,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = Director)
 	static AUndeadDirector* GetInstance();
 
-	void SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team = ETeam::AI);
+	void SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team = ETeam::AI, bool forceSpawn = false);
 
 	void SpawnTickEnemy();
 	void UpdateFrequencies(class ADeathMatchGS* gs);

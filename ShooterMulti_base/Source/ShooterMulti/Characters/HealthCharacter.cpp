@@ -314,8 +314,6 @@ void AHealthCharacter::StartDisapear()
 
 void AHealthCharacter::UpdateDisapear()
 {
-	if (GetLocalRole() != ENetRole::ROLE_Authority)
-		return;
 	if (!bIsDisapearing || DisapearTimer < DisapearingDelay)
 		return;
 
@@ -324,6 +322,8 @@ void AHealthCharacter::UpdateDisapear()
 	if (DisapearTimer > DisapearingDelay + DisapearingDuration)
 	{
 		bIsDisapearing = false;
+		if (GetLocalRole() != ENetRole::ROLE_Authority)
+			return;
 		return FinishDisapear();
 	}
 }
@@ -340,11 +340,11 @@ void AHealthCharacter::Reset()
 
 void AHealthCharacter::SetTeam(ETeam InTeam)
 {
-	Team = InTeam;
-	MulticastOnTeamSwitch();
+	MulticastOnTeamSwitch(InTeam);
 }
 
-void AHealthCharacter::MulticastOnTeamSwitch_Implementation()
+void AHealthCharacter::MulticastOnTeamSwitch_Implementation(ETeam InTeam)
 {
+	Team = InTeam;
 	OnTeamSwitch.Broadcast();
 }

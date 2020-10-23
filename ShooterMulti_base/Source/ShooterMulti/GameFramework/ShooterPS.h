@@ -1,8 +1,8 @@
 #pragma once
 
 #include "GameFramework/PlayerState.h"
-#include "DeathMatchGM.h"
 #include "PlayerGI.h"
+#include "../Enum/EnumTeam.h"
 #include "ShooterPS.generated.h"
 
 UCLASS()

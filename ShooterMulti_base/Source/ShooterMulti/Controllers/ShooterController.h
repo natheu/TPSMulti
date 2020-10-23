@@ -38,9 +38,9 @@ protected:
 	void ServerStartJump();
 	void ServerStartJump_Implementation();
 	bool ServerStartJump_Validate() { return true; }
-	UFUNCTION(NetMulticast, Reliable)
+	/*UFUNCTION(NetMulticast, Reliable)
 	void MulticastStartJump();
-	void MulticastStartJump_Implementation();
+	void MulticastStartJump_Implementation();*/
 
 	void StartAim();
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -59,18 +59,18 @@ protected:
 	void ServerStartShoot();
 	void ServerStartShoot_Implementation();
 	bool ServerStartShoot_Validate() { return true; }
-	UFUNCTION(NetMulticast, Reliable)
+	/*UFUNCTION(NetMulticast, Reliable)
 	void MulticastStartShoot();
-	void MulticastStartShoot_Implementation();
+	void MulticastStartShoot_Implementation();*/
 
 	void EndShoot();
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerEndShoot();
 	void ServerEndShoot_Implementation();
 	bool ServerEndShoot_Validate() { return true; }
-	UFUNCTION(NetMulticast, Reliable)
+	/*UFUNCTION(NetMulticast, Reliable)
 	void MulticastEndShoot();
-	void MulticastEndShoot_Implementation();
+	void MulticastEndShoot_Implementation();*/
 
 	void StartReload();
 

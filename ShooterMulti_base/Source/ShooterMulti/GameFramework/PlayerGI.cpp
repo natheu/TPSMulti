@@ -4,7 +4,7 @@
 UPlayerGI::UPlayerGI(const FObjectInitializer& ObjInit) : Super(ObjInit)
 {
 	// force blue team on offline mode $$$ to remove when implementing online mode
-	UserInfo.TeamNum = 2;
+	UserInfo.TeamNum = 1;
 }
 
 FPlayerInfo UPlayerGI::GetUserInfo()

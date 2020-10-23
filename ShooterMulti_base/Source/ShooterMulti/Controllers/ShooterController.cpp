@@ -111,11 +111,11 @@ void AShooterController::ServerStartJump_Implementation()
 		ShooterCharacter->MulticastStartJump();
 }
 
-void AShooterController::MulticastStartJump_Implementation()
+/*void AShooterController::MulticastStartJump_Implementation()
 {
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
 		ShooterCharacter->StartJump();
-}
+}*/
 
 void AShooterController::EndJump()
 {
@@ -159,11 +159,11 @@ void AShooterController::ServerStartShoot_Implementation()
 		ShooterCharacter->MulticastStartShoot();
 }
 
-void AShooterController::MulticastStartShoot_Implementation()
+/*void AShooterController::MulticastStartShoot_Implementation()
 {
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
 		ShooterCharacter->StartShoot();
-}
+}*/
 
 void AShooterController::EndShoot()
 {
@@ -176,11 +176,11 @@ void AShooterController::ServerEndShoot_Implementation()
 		ShooterCharacter->MulticastEndShoot();
 }
 
-void AShooterController::MulticastEndShoot_Implementation()
+/*void AShooterController::MulticastEndShoot_Implementation()
 {
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
 		ShooterCharacter->StartShoot();
-}
+}*/
 
 void AShooterController::StartReload()
 {

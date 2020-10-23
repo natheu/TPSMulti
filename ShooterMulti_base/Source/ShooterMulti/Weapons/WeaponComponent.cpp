@@ -309,7 +309,7 @@ void UWeaponComponent::SpawnEmitterAtLocation(	UParticleSystem* EmitterTemplate,
 																					SpawnTransform,
 																					true,
 																					EPSCPoolMethod::AutoRelease);
-		if (Source != FVector::ZeroVector && Target != FVector::ZeroVector)
+		if (ParticleSystemComponent != nullptr && Source != FVector::ZeroVector && Target != FVector::ZeroVector)
 		{
 			ParticleSystemComponent->SetBeamSourcePoint(0, Source, 0);
 			ParticleSystemComponent->SetBeamTargetPoint(0, Target, 0);

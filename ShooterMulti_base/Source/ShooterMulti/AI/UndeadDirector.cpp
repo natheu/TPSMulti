@@ -8,8 +8,7 @@ AUndeadDirector* AUndeadDirector::Instance = nullptr;
 
 AUndeadDirector::AUndeadDirector()
 {
-	bAlwaysRelevant = true;
-	bReplicates = true;
+	
 }
 
 // Called when the game starts or when spawned
@@ -18,7 +17,7 @@ void AUndeadDirector::BeginPlay()
 	Super::BeginPlay();
 
 	// Instance only used on Server
-	Instance = this;
+	Instance = this; 
 
 	if (SpawnPoints.Num() == 0)
 		UE_LOG(GLogShooterMulti, Warning, TEXT("Undead Director has no spawn point."));
@@ -42,12 +41,15 @@ void AUndeadDirector::Destroyed()
 		Instance = nullptr;
 }
 
-void AUndeadDirector::SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team)
+void AUndeadDirector::SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team, bool forceSpawn)
 {
 	ADeathMatchGS* temp = Cast<ADeathMatchGS>(GetWorld()->GetGameState());
-
-	if (SpawnPoints.Num() == 0 || !temp->CanAddAI())
-		return;
+	auto dirI = GetInstance();
+	if(AUndeadDirector::GetInstance()->HasAuthority())
+		dirI->MaxPunchPerSecond = 2;
+	if(!forceSpawn)
+		if (SpawnPoints.Num() == 0 || !temp->CanAddAI())
+			return;
 
 	pos.Y += 100; // avoid in ground spawn.
 

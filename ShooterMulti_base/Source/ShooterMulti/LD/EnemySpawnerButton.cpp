@@ -8,6 +8,7 @@
 
 AEnemySpawnerButton::AEnemySpawnerButton()
 {
+	bAlwaysRelevant = true;
 	bReplicates = true;
 }
 
@@ -32,12 +33,11 @@ void AEnemySpawnerButton::Activate(ETeam team)
 
 	auto lambda = [this]()
 	{
+		//auto dir = Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->GetUndeadDirector();
 		auto dir = AUndeadDirector::GetInstance();
 		if (GetLocalRole() == ENetRole::ROLE_Authority)
-			dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam);
+			dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam, false);
 	};
-	auto dir = AUndeadDirector::GetInstance();
-
 	if (GetLocalRole() == ENetRole::ROLE_Authority)
 		GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, lambda, SecondPerSpawn, true);
 
@@ -53,7 +53,6 @@ void AEnemySpawnerButton::SetTeam(ETeam team)
 
 	FLinearColor color = team == ETeam::Blue ? FLinearColor::Blue : team == ETeam::Red ? FLinearColor::Red : FLinearColor::Green;
 
-	/*material->SetVectorParameterValue("ColorActive", color);*/
 	MulticastUpdateTeam(team, color);
 }
 
