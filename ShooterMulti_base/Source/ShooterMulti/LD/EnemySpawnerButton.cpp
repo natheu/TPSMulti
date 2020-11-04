@@ -35,11 +35,14 @@ void AEnemySpawnerButton::Activate(ETeam team)
 	{
 		//auto dir = Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->GetUndeadDirector();
 		auto dir = AUndeadDirector::GetInstance();
-		if (GetLocalRole() == ENetRole::ROLE_Authority)
-			dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam, false);
+		dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam, false);
 	};
 	if (GetLocalRole() == ENetRole::ROLE_Authority)
+	{
 		GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, lambda, SecondPerSpawn, true);
+		FTimerHandle resetTimerButton;
+		GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, this, &AEnemySpawnerButton::Reset, TimeResetButton, false);
+	}
 
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ActivateSound, GetActorLocation());
 }
