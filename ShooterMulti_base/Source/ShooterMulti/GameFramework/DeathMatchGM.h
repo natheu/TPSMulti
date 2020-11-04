@@ -31,4 +31,7 @@ public:
 	void Respawn(APlayerController* PlayerController);
 
 	void Quit();
+
+	UFUNCTION()
+	void CheckPlayersAreReady();
 };

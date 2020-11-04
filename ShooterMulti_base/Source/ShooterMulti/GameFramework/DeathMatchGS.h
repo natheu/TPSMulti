@@ -68,4 +68,7 @@ public:
 	void ShowTeamWinHUD_Implementation(ETeam Team) {};
 	
 	int NewFrequency(int Sec);
+
+	UFUNCTION()
+	bool ArePlayersReady();
 };
