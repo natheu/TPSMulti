@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "../AI/UndeadDirector.h"
 #include "Engine/GameInstance.h"
 #include "PlayerGI.generated.h"
 
@@ -19,8 +18,6 @@ class SHOOTERMULTI_API UPlayerGI : public UGameInstance
 	GENERATED_BODY()
 	
 	FPlayerInfo UserInfo;
-
-	//AUndeadDirector* undeadDirectorInstance;
 
 public:
 	UPlayerGI(const FObjectInitializer& ObjInit);

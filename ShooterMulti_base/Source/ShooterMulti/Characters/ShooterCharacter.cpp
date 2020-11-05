@@ -408,7 +408,6 @@ void AShooterCharacter::InflictPushButton()
 		if (Button)
 			Button->Activate(Team);
 	}
-	//MulticastInflictPushButton();
 }
 
 void AShooterCharacter::MulticastInflictPushButton_Implementation()
