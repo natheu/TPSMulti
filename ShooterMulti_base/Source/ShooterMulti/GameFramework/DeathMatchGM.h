@@ -31,4 +31,9 @@ public:
 	AUndeadDirector* GetUndeadDirector() { return undeadDirector; }
 
 	void Quit();
+
+	virtual void GetSeamlessTravelActorList(bool bToTransition, TArray<AActor*>& ActorList) override;
+
+	UFUNCTION()
+	void CheckPlayersAreReady();
 };

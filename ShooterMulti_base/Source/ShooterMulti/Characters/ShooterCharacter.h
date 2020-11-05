@@ -44,8 +44,6 @@ private:
 	void ServerInitTeam_Implementation(ETeam InTeam);
 	bool ServerInitTeam_Validate(ETeam InTeam) { return true; }
 
-
-
 protected:
 
 	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Character|Shooter")
@@ -87,6 +85,11 @@ protected:
 	void ServerUpdateAimOffsets_Implementation(float Pitch, float Yaw);
 	bool ServerUpdateAimOffsets_Validate(float Pitch, float Yaw) { return true; }
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString pseudo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool ready{ false };
 
 public:
 
@@ -202,6 +205,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Character|Shooter")
 	void RefreshTeamHUD(ETeam InTeam);
 	void RefreshTeamHUD_Implementation(ETeam InTeam) {};
+
+	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
+		FString Pseudo() { return pseudo; }
+	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
+		bool Ready() { return ready; }
 
 	void StartDisapear() override;
 	void FinishDisapear() override;
