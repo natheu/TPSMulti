@@ -1,0 +1,1 @@
+start "" "D:\Epic Games\UE_4.25\Engine\Binaries\Win64\UE4Editor.exe" "%CD%\ShooterMulti.uproject" Lobby -server -log -nostream

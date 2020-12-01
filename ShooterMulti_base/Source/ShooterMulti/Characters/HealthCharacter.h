@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameFramework/Character.h"
+//#include "../GameFramework/DeathMatchGM.h"
 #include "../GameFramework/ShooterPS.h"
 #include "../GameFramework/Resetable.h"
 #include "HealthCharacter.generated.h"
@@ -16,12 +17,16 @@ protected:
 	bool bIsDisapearing;
 	TArray<UMaterialInstanceDynamic*> DissolveMaterials;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Character")
 	ETeam Team;
 
 	UPROPERTY(EditAnywhere, Category = "Character|Health", meta = (ClampMin = "0.0"))
 	float MaxHealth = 100.f;
 
+
+	UFUNCTION()
+	void OnRep_CheckHealth();
+	UPROPERTY(ReplicatedUsing = OnRep_CheckHealth)
 	float Health = MaxHealth;
 
 	UPROPERTY(EditAnywhere, Category = "Character|Health", meta = (ClampMin = "0.0"))
@@ -51,6 +56,8 @@ protected:
 	void InitRagdoll();
 	void ActivateRagdoll();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 
 	DECLARE_EVENT(AHealthCharacter, TeamSwitchEvent)
@@ -69,12 +76,18 @@ public:
 	ETeam GetTeam() const;
 
 	void SetTeam(ETeam InTeam);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastOnTeamSwitch(ETeam InTeam);
+	void MulticastOnTeamSwitch_Implementation(ETeam InTeam);
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Health")
 	virtual float	TakeDamage	(float					DamageAmount,
 								 FDamageEvent const&	DamageEvent,
 								 class AController*		EventInstigator,
 								 AActor*				DamageCauser) override;
+
+	UFUNCTION()
+	void UpdateTeamScore(AActor* DamageCauser);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastUpdateTakeDamage(const FVector_NetQuantize& PointDamageEvent, USoundBase* CrtHitSound, float TotalDamage);
@@ -104,5 +117,6 @@ public:
 
 	virtual void StartDisapear();
 	virtual void UpdateDisapear();
+
 	virtual void FinishDisapear();
 };

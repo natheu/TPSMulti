@@ -9,8 +9,8 @@ void AAmmoPickup::NotifyActorBeginOverlap(AActor * OtherActor)
 
 	if (!Weapon || Weapon->AmmoCount >= Weapon->MaxAmmo)
 		return;
-
-	Weapon->GetAmmo(Capacity);
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+		Weapon->GetAmmo(Capacity);
 
 	// After because of Destroy
 	Super::NotifyActorBeginOverlap(OtherActor);

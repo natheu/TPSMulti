@@ -7,6 +7,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine.h"
+#include "Net/UnrealNetwork.h"
+
 
 AHealthCharacter::AHealthCharacter(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -27,7 +29,9 @@ AHealthCharacter::AHealthCharacter(const FObjectInitializer& ObjectInitializer) 
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 }
+
 
 void AHealthCharacter::BeginPlay()
 {
@@ -53,6 +57,22 @@ void AHealthCharacter::Tick(float DeltaTime)
 
 	UpdateDisapear();
 }
+
+void AHealthCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AHealthCharacter, Health);
+	DOREPLIFETIME(AHealthCharacter, Team);
+}
+
+void AHealthCharacter::OnRep_CheckHealth()
+{
+	if (Health > MaxHealth)
+		Health = MaxHealth;
+	else if (Health < 0)
+		Health = 0;
+}
+
 
 bool AHealthCharacter::IsDead()
 {
@@ -112,25 +132,47 @@ float AHealthCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Dama
 		else
 			TotalDamage = DamageAmount;
 
-		/*Health = FMath::Max(0.f, Health - TotalDamage);
-		if (CrtHitSound)
-			UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, PointDamageEvent->HitInfo.Location);*/
 		if (GetLocalRole() == ENetRole::ROLE_Authority)
+		{
+			Health = FMath::Max(0.f, Health - TotalDamage);
 			MulticastUpdateTakeDamage(PointDamageEvent->HitInfo.Location, CrtHitSound, TotalDamage);
+		}
 	}
 	
 	if (IsDead())
 	{
 		if (GetLocalRole() == ENetRole::ROLE_Authority)
+		{
+			UpdateTeamScore(DamageCauser);
 			MulticastUpdateDeath();
+		}
 	}
 
 	return TotalDamage;
 }
 
+void AHealthCharacter::UpdateTeamScore(AActor* DamageCauser)
+{
+	AHealthCharacter* HealthCharacterCauser = Cast<AHealthCharacter>(DamageCauser);
+
+	ADeathMatchGS* gameState = Cast<ADeathMatchGS>(GetWorld()->GetGameState());
+
+	if (!HealthCharacterCauser || !gameState)
+		return;
+
+	if (HealthCharacterCauser->Team == ETeam::AI)
+	{
+		if (this->Team == ETeam::Blue)
+			gameState->AddScore(ETeam::Red);
+		else
+			gameState->AddScore(ETeam::Blue);
+	}
+	else
+		gameState->AddScore(HealthCharacterCauser->Team);
+}
+
 void AHealthCharacter::MulticastUpdateTakeDamage_Implementation(const FVector_NetQuantize& Location, USoundBase* CrtHitSound, float TotalDamage)
 {
-	Health = FMath::Max(0.f, Health - TotalDamage);
 	if (CrtHitSound)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), CrtHitSound, Location);
 }
@@ -144,7 +186,7 @@ void AHealthCharacter::MulticastUpdateDeath_Implementation()
 float AHealthCharacter::GainHealth(float GainAmount)
 {
 	if (!IsDead() && GainAmount > 0.0f && GetLocalRole() == ENetRole::ROLE_Authority)
-		MulticastGainHealth(GainAmount);
+		Health = FMath::Min(Health + GainAmount, MaxHealth);
 
 	return Health;
 }
@@ -272,8 +314,6 @@ void AHealthCharacter::StartDisapear()
 
 void AHealthCharacter::UpdateDisapear()
 {
-	if (GetLocalRole() != ENetRole::ROLE_Authority)
-		return;
 	if (!bIsDisapearing || DisapearTimer < DisapearingDelay)
 		return;
 
@@ -282,6 +322,8 @@ void AHealthCharacter::UpdateDisapear()
 	if (DisapearTimer > DisapearingDelay + DisapearingDuration)
 	{
 		bIsDisapearing = false;
+		if (GetLocalRole() != ENetRole::ROLE_Authority)
+			return;
 		return FinishDisapear();
 	}
 }
@@ -297,6 +339,11 @@ void AHealthCharacter::Reset()
 }
 
 void AHealthCharacter::SetTeam(ETeam InTeam)
+{
+	MulticastOnTeamSwitch(InTeam);
+}
+
+void AHealthCharacter::MulticastOnTeamSwitch_Implementation(ETeam InTeam)
 {
 	Team = InTeam;
 	OnTeamSwitch.Broadcast();

@@ -6,6 +6,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/DecalComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Net/UnrealNetwork.h"
+
 
 void UWeaponComponent::BeginPlay()
 {
@@ -37,6 +39,30 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	CurrentSpread = FMath::Max(MinSpread, CurrentSpread - WeaponSpreadRecoveryRate * DeltaTime);
 }
 
+
+void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UWeaponComponent, AmmoCount);
+	DOREPLIFETIME(UWeaponComponent, LoadedAmmo);
+}
+
+void UWeaponComponent::OnRep_CheckAmmo()
+{
+	if (AmmoCount > MaxAmmo)
+		AmmoCount = MaxAmmo;
+	else if (AmmoCount < 0)
+		AmmoCount = 0;
+}
+
+void UWeaponComponent::OnRep_CheckLoadedAmmo()
+{
+	if (LoadedAmmo > WeaponMagazineSize)
+		LoadedAmmo = WeaponMagazineSize;
+	else if (LoadedAmmo < 0)
+		LoadedAmmo = 0;
+}
+
 bool UWeaponComponent::Shot()
 {
 	if (ShootTimer < FireRate)
@@ -48,7 +74,9 @@ bool UWeaponComponent::Shot()
 		return false;
 
 	--LoadedAmmo;
-
+	
+	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
+		return true;
 	FLaserWeaponData WeaponData;
 	WeaponData.MuzzleTransform = GetSocketTransform("MuzzleFlashSocket");
 	WeaponData.LookTransform = Cast<AShooterCharacter>(GetOwner())->GetCameraComponent()->GetCameraHandle()->GetComponentTransform();
@@ -57,20 +85,26 @@ bool UWeaponComponent::Shot()
 	WeaponData.Spread = CurrentSpread;
 
 	FHitResult HitResult;
-	if (ShootLaser(GetOwner(), HitResult, WeaponData))
+	FVector LookDirection;
+	if (ShootLaser(GetOwner(), HitResult, WeaponData, LookDirection))
 	{
-		//make impact decal
-		MakeImpactDecal(HitResult, ImpactDecalMat, .9f * ImpactDecalSize, 1.1f * ImpactDecalSize);
-
-		//create impact particles
-		MakeImpactParticles(ImpactParticle, HitResult, .66f);
-	}
-
-	if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
-	{
-		//make the beam visuals
-		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), HitResult.ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
+		if (GetOwner()->GetLocalRole() == ENetRole::ROLE_Authority)
+			MulticastFxSoundSuccessShoot(LookDirection, WeaponData);
 		
+	}
+	if (GetOwner()->GetLocalRole() == ENetRole::ROLE_Authority)
+		MulticastFxSoundShoot(HitResult.ImpactPoint, WeaponData);
+
+	return true;
+}
+
+void UWeaponComponent::MulticastFxSoundShoot_Implementation(FVector_NetQuantize ImpactPoint, FLaserWeaponData WeaponData)
+{
+	//if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
+	//{
+		//make the beam visuals
+		MakeLaserBeam(WeaponData.MuzzleTransform.GetLocation(), ImpactPoint, BeamParticle, BeamIntensity, FLinearColor(1.f, 0.857892f, 0.036923f), BeamIntensityCurve);
+
 
 		//make muzzle smoke
 		UGameplayStatics::SpawnEmitterAttached(MuzzleSmokeParticle, this, FName("MuzzleFlashSocket"));
@@ -79,7 +113,7 @@ bool UWeaponComponent::Shot()
 		auto PlayerController = Cast<AShooterController>(Cast<AShooterCharacter>(GetOwner())->GetController());
 		if (PlayerController && ShootShake)
 			PlayerController->ClientPlayCameraShake(ShootShake);
-	}
+	//}
 
 	//play the shot sound
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotSound, WeaponData.MuzzleTransform.GetLocation());
@@ -90,8 +124,20 @@ bool UWeaponComponent::Shot()
 	//play sound if gun empty
 	if (LoadedAmmo == 0)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShotEmptySound, GetOwner()->GetActorLocation());
+}
 
-	return true;
+void UWeaponComponent::MulticastFxSoundSuccessShoot_Implementation(FVector LookTransform, 
+																	FLaserWeaponData WeaponData)
+{
+	FHitResult HitResult;
+
+	ShootLaserForFX(GetOwner(), HitResult, WeaponData, LookTransform);
+
+	//make impact decal
+	MakeImpactDecal(HitResult, ImpactDecalMat, .9f * ImpactDecalSize, 1.1f * ImpactDecalSize);
+
+	//create impact particles
+	MakeImpactParticles(ImpactParticle, HitResult, .66f);
 }
 
 void UWeaponComponent::Reload()
@@ -115,10 +161,8 @@ void UWeaponComponent::GetAmmo(int Count)
 
 // Weapon Utiliy
 
-bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData)
+bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, FVector& outLookDirection)
 {
-	/*if (GetOwner()->GetLocalRole() != ENetRole::ROLE_Authority)
-		return false;*/
 	FVector LookLocation = WeaponData.LookTransform.GetLocation();
 	FVector LookDirection = WeaponData.LookTransform.GetRotation().GetForwardVector();
 
@@ -126,6 +170,7 @@ bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const F
 	if (WeaponData.Spread > 0.f)
 		LookDirection = UKismetMathLibrary::RandomUnitVectorInConeInRadians(LookDirection,
 																			FMath::DegreesToRadians(WeaponData.Spread * .5f));
+	outLookDirection = LookDirection;
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(Causer);
@@ -174,11 +219,32 @@ bool UWeaponComponent::ShootLaser(AActor* Causer, FHitResult& HitResult, const F
 	}
 }
 
+void UWeaponComponent::ShootLaserForFX(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, const FVector& LookDirection)
+{
+	FVector LookLocation = WeaponData.LookTransform.GetLocation();
+
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(Causer);
+	CollisionParams.bTraceComplex = true;
+	CollisionParams.bReturnPhysicalMaterial = true;
+
+	if (!GetWorld()->LineTraceSingleByChannel(HitResult,
+		LookLocation,
+		LookLocation + LookDirection * WeaponData.MaxDistance,
+		ECC_Visibility, CollisionParams))
+	{
+		HitResult.ImpactPoint = LookLocation + LookDirection * WeaponData.MaxDistance;
+		HitResult.Distance = WeaponData.MaxDistance;
+	}
+}
+
 void UWeaponComponent::MakeImpactDecal(	const FHitResult& FromHit,
 										UMaterialInterface* ImpactDecalMaterial,
 										float ImpactDecalSizeMin,
 										float ImpactDecalSizeMax)
 {
+	if (FromHit.Actor == nullptr)
+		return;
 	auto StaticMeshComponent = FromHit.Actor->FindComponentByClass<UStaticMeshComponent>();
 	if (StaticMeshComponent)
 	{
@@ -243,7 +309,7 @@ void UWeaponComponent::SpawnEmitterAtLocation(	UParticleSystem* EmitterTemplate,
 																					SpawnTransform,
 																					true,
 																					EPSCPoolMethod::AutoRelease);
-		if (Source != FVector::ZeroVector && Target != FVector::ZeroVector)
+		if (ParticleSystemComponent != nullptr && Source != FVector::ZeroVector && Target != FVector::ZeroVector)
 		{
 			ParticleSystemComponent->SetBeamSourcePoint(0, Source, 0);
 			ParticleSystemComponent->SetBeamTargetPoint(0, Target, 0);

@@ -28,6 +28,8 @@ void APickupDirector::BeginPlay()
 
 void APickupDirector::SpawnTick()
 {
+	if (GetLocalRole() != ENetRole::ROLE_Authority)
+		return;
 	if (bIsFull)
 		return;
 	

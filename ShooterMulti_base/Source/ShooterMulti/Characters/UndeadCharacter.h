@@ -10,10 +10,15 @@ class SHOOTERMULTI_API AUndeadCharacter : public AHealthCharacter
 	GENERATED_BODY()
 
 private:
-
+	UPROPERTY()
 	bool bHasPunched;
 
-	void PlayPunchMontage();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayPunchMontage();
+	void MulticastPlayPunchMontage_Implementation();
+
+protected:
+	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 

@@ -111,12 +111,6 @@ void AShooterController::ServerStartJump_Implementation()
 		ShooterCharacter->MulticastStartJump();
 }
 
-void AShooterController::MulticastStartJump_Implementation()
-{
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->StartJump();
-}
-
 void AShooterController::EndJump()
 {
 	if (GetPawn()->GetLocalRole() == ENetRole::ROLE_Authority)
@@ -127,15 +121,26 @@ void AShooterController::EndJump()
 
 void AShooterController::StartAim()
 {
+	ServerStartAim();
+}
+
+void AShooterController::ServerStartAim_Implementation()
+{
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->StartAim();
+		ShooterCharacter->MulticastStartAim();
 }
 
 void AShooterController::EndAim()
 {
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->EndAim();
+	ServerEndAim();
 }
+
+void AShooterController::ServerEndAim_Implementation()
+{
+	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->MulticastEndAim();
+}
+
 
 void AShooterController::StartShoot()
 {
@@ -148,11 +153,6 @@ void AShooterController::ServerStartShoot_Implementation()
 		ShooterCharacter->MulticastStartShoot();
 }
 
-void AShooterController::MulticastStartShoot_Implementation()
-{
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->StartShoot();
-}
 
 void AShooterController::EndShoot()
 {
@@ -163,12 +163,6 @@ void AShooterController::ServerEndShoot_Implementation()
 {
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
 		ShooterCharacter->MulticastEndShoot();
-}
-
-void AShooterController::MulticastEndShoot_Implementation()
-{
-	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->StartShoot();
 }
 
 void AShooterController::StartReload()
@@ -196,8 +190,15 @@ void AShooterController::ServerPushButton_Implementation()
 
 void AShooterController::Punch()
 {
+	ServerPunch();
+	/*if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
+		ShooterCharacter->Punch();*/
+}
+
+void AShooterController::ServerPunch_Implementation()
+{
 	if (IsValid(ShooterCharacter) && !ShooterCharacter->IsDead())
-		ShooterCharacter->Punch();
+		ShooterCharacter->MulticastPunch();
 }
 
 void AShooterController::DisableInput(APlayerController* PlayerController)

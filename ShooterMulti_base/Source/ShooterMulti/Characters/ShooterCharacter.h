@@ -43,11 +43,6 @@ private:
 	void ServerInitTeam(ETeam InTeam);
 	void ServerInitTeam_Implementation(ETeam InTeam);
 	bool ServerInitTeam_Validate(ETeam InTeam) { return true; }
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastInitTeam(ETeam InTeam);
-	void MulticastInitTeam_Implementation(ETeam InTeam);
-
-
 
 protected:
 
@@ -61,11 +56,13 @@ protected:
 	EShooterCharacterState State;
 	EShooterCharacterState PrevState;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	float AimPitch;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	float AimYaw;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void UpdateAimOffsets(float Pitch, float Yaw);
 
@@ -82,6 +79,17 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Character|Shooter")
 	void InvincibilityFX(float Duration);
 	void InvincibilityFX_Implementation(float Duration) {};
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerUpdateAimOffsets(float Pitch, float Yaw);
+	void ServerUpdateAimOffsets_Implementation(float Pitch, float Yaw);
+	bool ServerUpdateAimOffsets_Validate(float Pitch, float Yaw) { return true; }
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FString pseudo;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool ready{ false };
 
 public:
 
@@ -147,8 +155,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartAim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStartAim();
+	void MulticastStartAim_Implementation();
+
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void EndAim();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastEndAim();
+	void MulticastEndAim_Implementation();
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void StartShoot();
@@ -183,10 +198,18 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
 	void Punch();
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPunch();
+	void MulticastPunch_Implementation();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Character|Shooter")
 	void RefreshTeamHUD(ETeam InTeam);
 	void RefreshTeamHUD_Implementation(ETeam InTeam) {};
+
+	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
+		FString Pseudo() { return pseudo; }
+	UFUNCTION(BlueprintCallable, Category = "Character|Shooter")
+		bool Ready() { return ready; }
 
 	void StartDisapear() override;
 	void FinishDisapear() override;

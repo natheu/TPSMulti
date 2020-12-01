@@ -29,6 +29,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintInternalUseOnly)
 	float SecondPerSpawn = 7.0f;
+	UPROPERTY(EditAnywhere, BlueprintInternalUseOnly)
+	float TimeResetButton = 22.f;
 
 	UPROPERTY(EditAnywhere)
 	USoundBase* ActivateSound;
@@ -37,6 +39,7 @@ public:
 
 	AEnemySpawnerButton();
 
+	UFUNCTION()
 	void Activate(ETeam team);
 
 	UFUNCTION()

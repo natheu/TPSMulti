@@ -33,8 +33,11 @@ void ADeathMatchGS::BeginPlay()
 void ADeathMatchGS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
 	DOREPLIFETIME(ADeathMatchGS, CurrentTime);
 	DOREPLIFETIME(ADeathMatchGS, CurrentAICount);
+	DOREPLIFETIME(ADeathMatchGS, RedTeamScore);
+	DOREPLIFETIME(ADeathMatchGS, BlueTeamScore);
 }
 
 void ADeathMatchGS::AdvanceTimer()
@@ -133,4 +136,26 @@ void ADeathMatchGS::ResetAfterDelay()
 void ADeathMatchGS::EndGameTrigg()
 {
 	OnGameRestart.Broadcast();
+}
+
+bool ADeathMatchGS::ArePlayersReady()
+{
+	if (GetLocalRole() != ROLE_Authority)
+		return false;
+
+	UE_LOG(LogTemp, Warning, TEXT("Found %d players"), PlayerArray.Num());
+
+	for (auto PlayerState : PlayerArray)
+	{
+		AShooterPS* MyPlayerState = Cast<AShooterPS>(PlayerState);
+		if (MyPlayerState == nullptr || !MyPlayerState->bIsPlayerReady)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NOT all players are ready"));
+			return false;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("All players are ready !!"));
+
+	return true;
 }

@@ -3,6 +3,7 @@
 #include "../Animations/UndeadCharacterAnim.h"
 #include "../GameFramework/DeathMatchGS.h"
 #include "Components/CapsuleComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AUndeadCharacter::AUndeadCharacter()
 {
@@ -19,6 +20,12 @@ AUndeadCharacter::AUndeadCharacter()
 	bAlwaysRelevant = true;
 	bReplicates = true;
 }
+
+/*void AUndeadCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AUndeadCharacter, bHasPunched);
+}*/
 
 // Called when the game starts or when spawned
 void AUndeadCharacter::BeginPlay()
@@ -39,12 +46,13 @@ bool AUndeadCharacter::Punch()
 	FTimerHandle Handle;
 	GetWorld()->GetTimerManager().SetTimer(Handle, [this]() { bHasPunched = false; }, PunchCooldown, false);
 
-	PlayPunchMontage();
+	if(GetLocalRole() == ENetRole::ROLE_Authority)
+		MulticastPlayPunchMontage();
 
 	return bHasPunched = true;
 }
 
-void AUndeadCharacter::PlayPunchMontage()
+void AUndeadCharacter::MulticastPlayPunchMontage_Implementation()
 {
 	USkeletalMeshComponent* SkeletalMesh = Cast<USkeletalMeshComponent>(GetMesh());
 

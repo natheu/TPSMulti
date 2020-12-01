@@ -1,6 +1,7 @@
 #include "ShooterCharacter.h"
 #include "../Animations/ShooterCharacterAnim.h"
 #include "../GameFramework/PlayerGI.h"
+#include "../GameFramework/DeathMatchGM.h"
 #include "../LD/EnemySpawnerButton.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -9,6 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 
 AShooterCharacter::AShooterCharacter()
 {
@@ -39,6 +41,14 @@ AShooterCharacter::AShooterCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void AShooterCharacter:: GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AShooterCharacter, AimPitch);
+	DOREPLIFETIME(AShooterCharacter, AimYaw);
+}
+
 EShooterCharacterState AShooterCharacter::GetState() const
 {
 	return State;
@@ -60,7 +70,7 @@ UPlayerCameraComponent* AShooterCharacter::GetCameraComponent()
 	return Camera;
 }
 
-void AShooterCharacter::UpdateAimOffsets(float Pitch, float Yaw)
+void AShooterCharacter::ServerUpdateAimOffsets_Implementation(float Pitch, float Yaw)
 {
 	AimPitch = Pitch;
 	AimYaw = Yaw;
@@ -68,10 +78,9 @@ void AShooterCharacter::UpdateAimOffsets(float Pitch, float Yaw)
 
 void AShooterCharacter::InitPlayer()
 {
-	const FPlayerInfo& PlayerInfo = static_cast<UPlayerGI*>(GetGameInstance())->GetUserInfo();
+	AShooterPS* ShooterState = static_cast<AShooterPS*>(GetPlayerState());
 
-	//InitTeamColor(static_cast<ETeam>(PlayerInfo.TeamNum));
-	ServerInitTeam(static_cast<ETeam>(PlayerInfo.TeamNum));
+//	ServerInitTeam(ShooterState->CurrentTeam);
 }
 
 void AShooterCharacter::InitTeamColor(ETeam InTeam)
@@ -82,13 +91,7 @@ void AShooterCharacter::InitTeamColor(ETeam InTeam)
 
 void AShooterCharacter::ServerInitTeam_Implementation(ETeam InTeam)
 {
-	MulticastInitTeam(InTeam);
-}
-
-void AShooterCharacter::MulticastInitTeam_Implementation(ETeam InTeam)
-{
 	SetTeam(InTeam);
-	OnTeamSwitch.Broadcast();
 }
 
 void AShooterCharacter::Invincibility(float Duration)
@@ -121,13 +124,15 @@ void AShooterCharacter::Tick(float DeltaTime)
 
 	if (bIsShooting && !Weapon->Shot())
 		StartReload();
+	if(GetWorld()->GetFirstPlayerController() == GetController())
+	{
+		// Anim aim offsets
+		FRotator LookRotation = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation());
+		AimPitch = UKismetMathLibrary::ClampAngle(LookRotation.Pitch, -90.f, 90.f);
+		AimYaw = UKismetMathLibrary::ClampAngle(LookRotation.Yaw, -90.f, 90.f); // May use later for smooth rotation
 
-	// Anim aim offsets
-	FRotator LookRotation = UKismetMathLibrary::NormalizedDeltaRotator(GetControlRotation(), GetActorRotation());
-	AimPitch = UKismetMathLibrary::ClampAngle(LookRotation.Pitch, -90.f, 90.f);
-	//AimYaw = UKismetMathLibrary::ClampAngle(lookRotation.Yaw, -90.f, 90.f); // May use later for smooth rotation
-
-	UpdateAimOffsets(AimPitch, AimYaw);
+		ServerUpdateAimOffsets(AimPitch, AimYaw);
+	}
 
 	Camera->ShakeCamera(uint8(State), GetLastMovementInputVector().Size());
 }
@@ -224,6 +229,11 @@ void AShooterCharacter::StartAim()
 	Camera->SwitchToAimCamera();
 }
 
+void AShooterCharacter::MulticastStartAim_Implementation()
+{
+	StartAim();
+}
+
 void AShooterCharacter::EndAim()
 {
 	if (State != EShooterCharacterState::Aim)
@@ -234,6 +244,11 @@ void AShooterCharacter::EndAim()
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 	
 	Camera->SwitchToWalkCamera();
+}
+
+void AShooterCharacter::MulticastEndAim_Implementation()
+{
+	EndAim();
 }
 
 void AShooterCharacter::StartShoot()
@@ -383,7 +398,7 @@ void AShooterCharacter::InflictPushButton()
 	if (GetLocalRole() != ENetRole::ROLE_Authority)
 		return;
 
-	/*TArray<AActor*> OverlappingActors;
+	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, TSubclassOf<AEnemySpawnerButton>());
 
 	if (OverlappingActors.Num() > 0)
@@ -392,8 +407,7 @@ void AShooterCharacter::InflictPushButton()
 
 		if (Button)
 			Button->Activate(Team);
-	}*/
-	MulticastInflictPushButton();
+	}
 }
 
 void AShooterCharacter::MulticastInflictPushButton_Implementation()
@@ -430,6 +444,10 @@ void AShooterCharacter::Punch()
 	PlayPunchAnim();
 }
 
+void AShooterCharacter::MulticastPunch_Implementation()
+{
+	Punch();
+}
 void AShooterCharacter::PlayPunchAnim()
 {
 	Cast<UShooterCharacterAnim>(GetMesh()->GetAnimInstance())->PlayPunchMontage();

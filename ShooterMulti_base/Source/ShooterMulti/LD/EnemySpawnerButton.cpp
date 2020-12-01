@@ -8,6 +8,8 @@
 
 AEnemySpawnerButton::AEnemySpawnerButton()
 {
+	bAlwaysRelevant = true;
+	bReplicates = true;
 }
 
 void AEnemySpawnerButton::BeginPlay()
@@ -31,11 +33,16 @@ void AEnemySpawnerButton::Activate(ETeam team)
 
 	auto lambda = [this]()
 	{
+		//auto dir = Cast<ADeathMatchGM>(GetWorld()->GetAuthGameMode())->GetUndeadDirector();
 		auto dir = AUndeadDirector::GetInstance();
-		dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam);
+		dir->SpawnEnemy(GetActorLocation(), GetActorRotation(), mTeam, false);
 	};
 	if (GetLocalRole() == ENetRole::ROLE_Authority)
+	{
 		GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, lambda, SecondPerSpawn, true);
+		FTimerHandle resetTimerButton;
+		GetWorld()->GetTimerManager().SetTimer(mSpawnTimerHandle, this, &AEnemySpawnerButton::Reset, TimeResetButton, false);
+	}
 
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ActivateSound, GetActorLocation());
 }
@@ -49,7 +56,6 @@ void AEnemySpawnerButton::SetTeam(ETeam team)
 
 	FLinearColor color = team == ETeam::Blue ? FLinearColor::Blue : team == ETeam::Red ? FLinearColor::Red : FLinearColor::Green;
 
-	/*material->SetVectorParameterValue("ColorActive", color);*/
 	MulticastUpdateTeam(team, color);
 }
 
@@ -67,5 +73,6 @@ void AEnemySpawnerButton::Reset()
 {
 	SetTeam(ETeam::None);
 
-	GetWorldTimerManager().ClearTimer(mSpawnTimerHandle);
+	if (GetLocalRole() == ENetRole::ROLE_Authority)
+		GetWorldTimerManager().ClearTimer(mSpawnTimerHandle);
 }

@@ -11,6 +11,7 @@ class SHOOTERMULTI_API AUndeadDirector : public AActor
 	GENERATED_BODY()
 	
 protected:
+
 	static AUndeadDirector* Instance;
 
 	FTimerHandle SpawnTimerHandle;
@@ -43,11 +44,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = Director)
 	static AUndeadDirector* GetInstance();
 
-	void SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team = ETeam::AI);
-
-	UFUNCTION(NetMultiCast, Reliable)
-	void MultiCastSpawnEnemy(FVector pos, const FRotator& rot, ETeam Team);
-	void MultiCastSpawnEnemy_Implementation(FVector pos, const FRotator& rot, ETeam Team);
+	void SpawnEnemy(FVector pos, const FRotator& rot, ETeam Team = ETeam::AI, bool forceSpawn = false);
 
 	void SpawnTickEnemy();
 	void UpdateFrequencies(class ADeathMatchGS* gs);

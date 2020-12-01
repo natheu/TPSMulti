@@ -34,7 +34,9 @@ private:
 	// Weapon Utility.
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter|Weapon")
-	bool ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData);
+	bool ShootLaser(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, FVector& LookDirection);
+
+	void ShootLaserForFX(AActor* Causer, FHitResult& HitResult, const FLaserWeaponData& WeaponData, const FVector& LookDirection);
 
 	UFUNCTION(BlueprintCallable, Category = "Character|Shooter|Weapon")
 	void MakeImpactDecal(	const FHitResult& FromHit,
@@ -88,15 +90,21 @@ protected:
 								const FVector& Source = FVector::ZeroVector,
 								const FVector& Target = FVector::ZeroVector);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
 	int MaxAmmo = 50;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
+	UFUNCTION()
+	void OnRep_CheckAmmo();
+	UPROPERTY(ReplicatedUsing = OnRep_CheckAmmo, BlueprintReadOnly, EditAnywhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
 	int AmmoCount = 50;
 
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Character|Shooter|Weapon")
+	UFUNCTION()
+	void OnRep_CheckLoadedAmmo();
+	UPROPERTY(ReplicatedUsing = OnRep_CheckLoadedAmmo, Transient, BlueprintReadOnly, Category = "Character|Shooter|Weapon")
 	int LoadedAmmo;
 
 	UPROPERTY(BlueprintReadOnly, EditAnyWhere, Category = "Character|Shooter|Weapon", meta = (ClampMin = "0"))
@@ -146,6 +154,13 @@ public:
 	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	bool Shot();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFxSoundShoot(FVector_NetQuantize ImpactPoint ,FLaserWeaponData WeaponData);
+	void MulticastFxSoundShoot_Implementation(FVector_NetQuantize ImpactPoint ,FLaserWeaponData WeaponData);
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFxSoundSuccessShoot(FVector LookDirection, FLaserWeaponData WeaponData);
+	void MulticastFxSoundSuccessShoot_Implementation(FVector LookDirection, FLaserWeaponData WeaponData);
 
 	void Reload();
 
